@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "module": "CommonJS",
+    "target": "ES2020",
+    "sourceMap": true,
+    "strict": true,
+    "outDir": "dist",
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "moduleResolution": "node",
+    "noFallthroughCasesInSwitch": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": true,
+    "skipLibCheck": true,
+    "watch": true,
+    "declaration": true,
+	  "experimentalDecorators": true
+  },
+  "exclude": [
+    "node_modules"
+  ],
+  "include": ["src"]
+}

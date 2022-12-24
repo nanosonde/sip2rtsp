@@ -1,0 +1,11 @@
+#!/command/with-contenv bash
+# shellcheck shell=bash
+# Prepare the logs folder for s6-log
+
+set -o errexit -o nounset -o pipefail
+
+dirs=(/dev/shm/logs/sip2rtsp /dev/shm/logs/baresip /dev/shm/logs/pulseaudio /dev/shm/logs/onvif-server)
+
+mkdir -p "${dirs[@]}"
+chown nobody:nogroup "${dirs[@]}"
+chmod 02755 "${dirs[@]}"
