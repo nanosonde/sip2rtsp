@@ -31,7 +31,7 @@ run: local
 	docker run --rm --publish=5000:5000 --volume=${PWD}/config/config.yml:/config/config.yml sip2rtsp:latest
 
 run_it: local
-	docker run --rm --network host --name sip2rtsp -it sip2rtsp:latest
+	docker run --rm --network host --name sip2rtsp -it sip2rtsp:latest /bin/bash
 
 run_tests: local
 	docker run --rm --workdir=/opt/sip2rtsp --entrypoint= sip2rtsp:latest python3 -u -m unittest

@@ -16,6 +16,35 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 WORKDIR /rootfs
 
+# Download and build pulseaudio
+FROM base AS pulseaudio
+ARG DEBIAN_FRONTEND
+ARG PULSEAUDIO_VERSION=16.1
+
+# Install pulseaudio
+RUN apt-get -qq update \
+    && apt-get -qq install -y wget python3 python3-distutils \
+                              ninja-build build-essential pkgconf \
+                              libsndfile1-dev libltdl-dev libtdb-dev libglib2.0-dev libcap-dev \
+    && wget -q https://bootstrap.pypa.io/get-pip.py -O get-pip.py \
+    && python3 get-pip.py "pip" \
+    && pip install meson \
+    && mkdir /tmp/pulseaudio \
+    && wget https://freedesktop.org/software/pulseaudio/releases/pulseaudio-${PULSEAUDIO_VERSION}.tar.gz \
+    && tar -zxf pulseaudio-${PULSEAUDIO_VERSION}.tar.gz -C /tmp/pulseaudio --strip-components=1 \
+    && rm pulseaudio-${PULSEAUDIO_VERSION}.tar.gz
+
+WORKDIR /tmp/pulseaudio
+
+RUN meson setup --prefix=/usr/local/pulseaudio \
+    -Dman=false -Dtests=false -Ddoxygen=false \
+    -Dudev=disabled -Ddbus=disabled \
+    -Dx11=disabled -Dbluez5=disabled -Dgtk=disabled \
+    -Dsystemd=disabled -Dalsa=disabled \
+    -Djack=disabled -Dlirc=disabled \
+    build \
+    && ninja -C build install \
+    && ldconfig
 
 FROM wget AS s6-overlay
 ARG TARGETARCH
@@ -61,6 +90,7 @@ RUN pip3 wheel --wheel-dir=/wheels -r requirements-wheels.txt
 
 # Collect deps in a single layer
 FROM scratch AS deps-rootfs
+COPY --from=pulseaudio /usr/local/pulseaudio/ /usr/local/pulseaudio/
 COPY --from=s6-overlay /rootfs/ /
 COPY docker/rootfs/ /
 
@@ -73,7 +103,7 @@ ARG DEBIAN_FRONTEND
 # http://stackoverflow.com/questions/48162574/ddg#49462622
 ARG APT_KEY_DONT_WARN_ON_DANGEROUS_USAGE=DontWarn
 
-ENV PATH="${PATH}"
+ENV PATH="/usr/local/pulseaudio/bin:${PATH}"
 
 # Install dependencies
 RUN --mount=type=bind,source=docker/install_deps.sh,target=/deps/install_deps.sh \
@@ -130,7 +160,7 @@ WORKDIR /opt/sip2rtsp/
 #COPY migrations migrations/
 COPY --from=onvif-server-build /work/dist/ onvif-server/
 
-# Frigate final container
+# sip2rtsp final container
 FROM deps
 
 WORKDIR /opt/sip2rtsp/
