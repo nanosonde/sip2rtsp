@@ -156,8 +156,7 @@ RUN npm run build
 FROM scratch AS rootfs
 
 WORKDIR /opt/sip2rtsp/
-#COPY frigate frigate/
-#COPY migrations migrations/
+COPY sip2rtsp sip2rtsp/
 COPY --from=onvif-server-build /work/dist/ onvif-server/
 
 # sip2rtsp final container

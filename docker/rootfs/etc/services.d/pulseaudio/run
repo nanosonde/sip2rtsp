@@ -5,6 +5,6 @@
 rm -rf /tmp/pulse-* ~/.pulse/*-runtime
 
 exec 2>&1
-exec /usr/local/pulseaudio/bin/pulseaudio --log-level=1 --log-target=stderr --disallow-exit=true --exit-idle-time=180 -vvvv -n -F /etc/pulse/default.pa
+exec /usr/local/pulseaudio/bin/pulseaudio --log-level=1 --log-target=stderr --disallow-exit=true --exit-idle-time=180 -v -n -F /etc/pulse/default.pa
 
 

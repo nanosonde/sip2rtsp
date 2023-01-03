@@ -30,6 +30,9 @@ apt-get -qq install --no-install-recommends --no-install-suggests -y \
     libltdl7 \
     libtdb1 \
     baresip \
+    baresip-core \
+    baresip-gstreamer \
+    baresip-x11 \
     gir1.2-gst-rtsp-server-1.0 \
     gstreamer1.0-tools \
     gstreamer1.0-plugins-good \
