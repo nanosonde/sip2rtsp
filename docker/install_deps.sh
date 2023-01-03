@@ -8,6 +8,7 @@ apt-get -qq install --no-install-recommends -y \
     apt-transport-https \
     gnupg \
     wget \
+    curl \
     procps \
     unzip locales tzdata libxml2 xz-utils \
     python3-pip
@@ -26,6 +27,11 @@ apt-get -qq update
 #### TODO: install packages per arch here
 ####
 
+# Install nodejs 16.x
+curl -fsSL https://deb.nodesource.com/setup_16.x | bash - && \
+apt-get -qq install --no-install-recommends --no-install-suggests -y nodejs
+
+# Install baresip, pulseaudio deps and gstreamer
 apt-get -qq install --no-install-recommends --no-install-suggests -y \
     libltdl7 \
     libtdb1 \
@@ -42,7 +48,7 @@ apt-get -qq install --no-install-recommends --no-install-suggests -y \
 
 # Clean up
 
-apt-get purge gnupg apt-transport-https wget xz-utils -y
+apt-get purge gnupg apt-transport-https wget curl xz-utils -y
 apt-get clean autoclean -y
 apt-get autoremove --purge -y
 rm -rf /var/lib/apt/lists/*

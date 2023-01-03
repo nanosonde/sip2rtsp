@@ -158,6 +158,7 @@ FROM scratch AS rootfs
 WORKDIR /opt/sip2rtsp/
 COPY sip2rtsp sip2rtsp/
 COPY --from=onvif-server-build /work/dist/ onvif-server/
+COPY --from=onvif-server-build /work/node_modules/ onvif-server/node_modules/
 
 # sip2rtsp final container
 FROM deps
