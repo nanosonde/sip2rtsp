@@ -46,6 +46,39 @@ RUN meson setup --prefix=/usr/local/pulseaudio \
     && ninja -C build install \
     && ldconfig
 
+# Download and build gstreamer
+FROM base AS gstreamer
+ARG DEBIAN_FRONTEND
+ARG GSTREAMER_VERSION=1.21.3
+
+COPY --from=pulseaudio /usr/local/pulseaudio/ /usr/local/
+
+# Install gstreamer
+RUN apt-get -qq update \
+    && apt-get -qq install -y wget git python3 python3-distutils python3-gi python-gi-dev \
+                              ninja-build build-essential pkgconf flex bison \
+                              gobject-introspection libgirepository1.0-dev libunwind-dev libdw-dev \
+                              gir1.2-glib-2.0 gir1.2-freedesktop zlib1g-dev libglib2.0-dev libsoup2.4-dev \
+    && wget -q https://bootstrap.pypa.io/get-pip.py -O get-pip.py \
+    && python3 get-pip.py "pip" \
+    && pip install meson \
+    && mkdir /tmp/gstreamer \
+    && wget https://gitlab.freedesktop.org/gstreamer/gstreamer/-/archive/${GSTREAMER_VERSION}/gstreamer-${GSTREAMER_VERSION}.tar.gz \
+    && tar -zxf gstreamer-${GSTREAMER_VERSION}.tar.gz -C /tmp/gstreamer --strip-components=1 \
+    && rm gstreamer-${GSTREAMER_VERSION}.tar.gz
+
+WORKDIR /tmp/gstreamer
+
+RUN meson setup --prefix=/usr/local/gstreamer \
+    -Dgood=enabled -Dbad=enabled -Dugly=enabled -Dgpl=enabled -Dintrospection=enabled \
+    -Dgst-plugins-ugly:x264=enabled \
+    -Dgst-plugins-good:pulse=enabled \
+    -Dgst-plugins-good:soup=enabled \
+    build \
+    && ninja -C build install \
+    && ldconfig
+
+
 FROM wget AS s6-overlay
 ARG TARGETARCH
 RUN --mount=type=bind,source=docker/install_s6_overlay.sh,target=/deps/install_s6_overlay.sh \
@@ -69,9 +102,7 @@ RUN apt-get -qq update \
     python3 \
     python3-dev \
     wget \
-    # opencv dependencies
-    build-essential cmake git pkg-config libssl-dev\
-    libgstreamer-plugins-base1.0-dev libgstreamer1.0-dev
+    build-essential cmake git pkg-config libssl-dev
 
 RUN wget -q https://bootstrap.pypa.io/get-pip.py -O get-pip.py \
     && python3 get-pip.py "pip"
@@ -91,6 +122,7 @@ RUN pip3 wheel --wheel-dir=/wheels -r requirements-wheels.txt
 # Collect deps in a single layer
 FROM scratch AS deps-rootfs
 COPY --from=pulseaudio /usr/local/pulseaudio/ /usr/local/pulseaudio/
+COPY --from=gstreamer /usr/local/gstreamer/ /usr/local/gstreamer/
 COPY --from=s6-overlay /rootfs/ /
 COPY docker/rootfs/ /
 
@@ -103,7 +135,8 @@ ARG DEBIAN_FRONTEND
 # http://stackoverflow.com/questions/48162574/ddg#49462622
 ARG APT_KEY_DONT_WARN_ON_DANGEROUS_USAGE=DontWarn
 
-ENV PATH="/usr/local/pulseaudio/bin:${PATH}"
+ENV PATH="/usr/local/pulseaudio/bin:/usr/local/gstreamer/bin:${PATH}"
+ENV GI_TYPELIB_PATH="/usr/local/gstreamer/lib/x86_64-linux-gnu/girepository-1.0/"
 
 # Install dependencies
 RUN --mount=type=bind,source=docker/install_deps.sh,target=/deps/install_deps.sh \
@@ -114,7 +147,8 @@ RUN --mount=type=bind,from=wheels,source=/wheels,target=/deps/wheels \
 
 COPY --from=deps-rootfs / /
 
-RUN ldconfig
+RUN echo "/usr/local/gstreamer/lib/x86_64-linux-gnu" > /etc/ld.so.conf.d/gstreamer.conf \
+    && ldconfig
 
 #EXPOSE 8554
 #EXPOSE 8555

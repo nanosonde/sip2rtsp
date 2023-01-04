@@ -39,13 +39,8 @@ apt-get -qq install --no-install-recommends --no-install-suggests -y \
     baresip-core \
     baresip-gstreamer \
     baresip-x11 \
-    gir1.2-gst-rtsp-server-1.0 \
-    gstreamer1.0-tools \
-    gstreamer1.0-plugins-good \
-    gstreamer1.0-plugins-bad \
-    gstreamer1.0-plugins-ugly \
-    gstreamer1.0-plugins-base \
-    python3-gi
+    python3-gi \
+    libsoup2.4-1
 
 # Clean up
 
