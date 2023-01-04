@@ -44,7 +44,8 @@ apt-get -qq install --no-install-recommends --no-install-suggests -y \
     gstreamer1.0-plugins-good \
     gstreamer1.0-plugins-bad \
     gstreamer1.0-plugins-ugly \
-    gstreamer1.0-plugins-base
+    gstreamer1.0-plugins-base \
+    python3-gi
 
 # Clean up
 
