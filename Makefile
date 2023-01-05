@@ -28,7 +28,7 @@ push: build
 	docker buildx build --push --platform linux/arm/v7,linux/arm64/v8,linux/amd64 --tag $(IMAGE_REPO):${GITHUB_REF_NAME}-$(COMMIT_HASH) .
 
 run: local
-	docker run --rm --publish=5000:5000 --volume=${PWD}/config/config.yml:/config/config.yml sip2rtsp:latest
+	docker run --rm --network host --volume=${PWD}/config/config.yml:/config/config.yml sip2rtsp:latest
 
 run_it: local
 	docker run --rm --network host --name sip2rtsp -it sip2rtsp:latest /bin/bash

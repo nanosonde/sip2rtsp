@@ -171,6 +171,31 @@ ENV S6_SERVICES_READYTIME=50
 ENTRYPOINT ["/init"]
 CMD []
 
+# sip2rtsp deps with Node.js and NPM for devcontainer
+FROM deps AS devcontainer
+
+# Do not start the actual sip2rtsp service on devcontainer as it will be started by VSCode
+# But start a fake service for simulating the logs
+COPY docker/fake_sip2rtsp_run /etc/services.d/sip2rtsp/run
+
+# Install Node 16
+RUN apt-get update \
+    && apt-get install wget -y \
+    && wget -qO- https://deb.nodesource.com/setup_16.x | bash - \
+    && apt-get install -y nodejs \
+    && rm -rf /var/lib/apt/lists/* \
+    && npm install -g npm@9
+
+WORKDIR /workspace/sip2rtsp
+
+RUN apt-get update \
+    && apt-get install make -y \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN --mount=type=bind,source=./requirements-dev.txt,target=/workspace/sip2rtsp/requirements-dev.txt \
+    pip3 install -r requirements-dev.txt
+
+CMD ["sleep", "infinity"]
 
 # ONVIF server build
 # force this to run on amd64 because QEMU is painfully slow

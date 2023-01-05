@@ -1,0 +1,49 @@
+{
+    "name": "sip2rtsp Devcontainer",
+    "dockerComposeFile": "../docker-compose.yml",
+    "service": "devcontainer",
+    "workspaceFolder": "/workspace/sip2rtsp",
+    "initializeCommand": ".devcontainer/initialize.sh",
+    "postCreateCommand": ".devcontainer/post_create.sh",
+    "overrideCommand": false,
+    "remoteUser": "vscode",
+    "features": {
+      "ghcr.io/devcontainers/features/common-utils:1": {}
+    },
+    "extensions": [
+      "ms-python.vscode-pylance",
+      "ms-python.python",
+      "visualstudioexptteam.vscodeintellicode",
+      "mhutchie.git-graph",
+      "ms-azuretools.vscode-docker",
+      "streetsidesoftware.code-spell-checker",
+      "esbenp.prettier-vscode",
+      "dbaeumer.vscode-eslint",
+      "mikestead.dotenv",
+    ],
+    "settings": {
+      "remote.autoForwardPorts": false,
+      "python.linting.pylintEnabled": true,
+      "python.linting.enabled": true,
+      "python.formatting.provider": "black",
+      "python.languageServer": "Pylance",
+      "editor.formatOnPaste": false,
+      "editor.formatOnSave": true,
+      "editor.formatOnType": true,
+      "python.testing.pytestEnabled": false,
+      "python.testing.unittestEnabled": true,
+      "python.testing.unittestArgs": ["-v", "-s", "./sip2rtsp/test"],
+      "files.trimTrailingWhitespace": true,
+      "eslint.workingDirectories": ["./onvif-server"],
+      "[json][jsonc]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+      },
+      "[jsx][js][tsx][ts]": {
+        "editor.codeActionsOnSave": ["source.addMissingImports", "source.fixAll"],
+        "editor.tabSize": 2
+      },
+      "cSpell.ignoreWords": ["rtmp"],
+      "cSpell.words": ["preact"]
+    }
+  }
+  

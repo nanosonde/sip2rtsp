@@ -1,0 +1,14 @@
+version: "3"
+services:
+  devcontainer:
+    network_mode: "host"
+    container_name: sip2rtsp-devcontainer
+    shm_size: "256mb"
+    build:
+      context: .
+      target: devcontainer
+    volumes:
+      - .:/workspace/sip2rtsp:cached
+      - ./onvif-server/dist:/opt/sip2rtsp/onvif-server:cached
+      - /etc/localtime:/etc/localtime:ro
+      - ./config/config.yml:/config/config.yml:ro

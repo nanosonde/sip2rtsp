@@ -1,6 +1,10 @@
 import logging
 import multiprocessing as mp
 from multiprocessing.queues import Queue
+import signal
+import sys
+from typing import Optional
+from types import FrameType
 
 from sip2rtsp.version import VERSION
 from sip2rtsp.log import log_process, root_configurer
@@ -68,4 +72,19 @@ class Sip2RtspApp:
             self.init_logger()
             logger.info(f"Starting SIP2RTSP ({VERSION})")
 
-            self.loop.run()
+            def receiveSignal(signalNumber: int, frame: Optional[FrameType]) -> None:
+                self.stop()
+                sys.exit()
+
+            signal.signal(signal.SIGTERM, receiveSignal)
+
+            try: 
+                self.loop.run()
+            except KeyboardInterrupt:
+                pass
+
+            self.stop()            
+
+    def stop(self) -> None:
+        logger.info(f"Stopping...")
+        self.loop.quit()

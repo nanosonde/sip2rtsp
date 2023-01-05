@@ -1,0 +1,16 @@
+README.md
+docs/
+.gitignore
+debug
+config/
+*.pyc
+.git
+core
+*.mp4
+*.jpg
+*.db
+*.ts
+
+onvif-server/dist/
+onvif-server/node_modules/
+onvif-server/.npm
