@@ -1,0 +1,8 @@
+#!/command/with-contenv bash
+# shellcheck shell=bash
+# Start the fake onvif-server service
+
+while true; do
+  echo "The fake onvif-server service is running..."
+  sleep 5s
+done
