@@ -18,7 +18,7 @@ const conf = {
 	hostname: process.env.HOSTNAME || 'localhost',
 };
 
-const verbose = process.env.VERBOSE || true;
+const verbose: boolean = ((process.env.VERBOSE?.toLowerCase()) === "true" || (process.env.VERBOSE?.toLowerCase()) === "1") ;
 
 export type ServiceMethodHandler = ((args: any, header?: any) => string) | ((args: any, header?: any) => Promise<string>);
 
@@ -45,11 +45,9 @@ export class OnvifServer {
 	@bind
 	public startServer(port: number) {
 		this.server.listen(port, () => {
-			if (verbose) {
-				if (this.server) {
-					const la = this.server.address() as AddressInfo;
-					console.log(`Listening on ${la.address} - port: ${la.port}`);
-				}
+			if (this.server) {
+				const la = this.server.address() as AddressInfo;
+				console.log(`ONVIF-Server listening on ${la.address} - port: ${la.port}`);
 			}
 		});
 	}

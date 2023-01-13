@@ -4,6 +4,8 @@
 
 set -o errexit -o nounset -o pipefail
 
+export VERBOSE=false
+
 # Replace the bash process with the onvif-server process, redirecting stderr to stdout
 exec 2>&1
 exec node /opt/sip2rtsp/onvif-server/serverMockup.js

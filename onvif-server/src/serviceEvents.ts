@@ -106,14 +106,14 @@ export class EventsService {
 		else {
 			subscriptionId = to.substring(to.lastIndexOf('/') + 1);
 		}
-		console.log("subscriptionId: " + util.inspect(subscriptionId, false, null, true));
+		//console.log("subscriptionId: " + util.inspect(subscriptionId, false, null, true));
 
 		return subscriptionId;
 	}
 
 	private createPullPointSubscription(args: any): string {
 
-		console.log("createPullPointSubscription(): " + util.inspect(args, false, null, true));
+		//console.log("createPullPointSubscription(): " + util.inspect(args, false, null, true));
 
 		// Generate a subscription ID
 		const subscriptionId: string = (Math.floor(Math.random() * Math.pow(2, 32))).toString();
@@ -141,11 +141,11 @@ export class EventsService {
 		`;
 	}
 
-	private unsubscribe(args: any, header: any): string {
+	private unsubscribe(_args: any, header: any): string {
 
 		const subscriptionId = this.getSubscriptionIdFromToHeader(header.to);
 
-		console.log("unsubscribe(): " + util.inspect(args, false, null, true));
+		//console.log("unsubscribe(): " + util.inspect(args, false, null, true));
 
 		// Look up the subscription in the map
 		const subscription = this.subscriptions.get(subscriptionId);
@@ -182,7 +182,7 @@ export class EventsService {
 		`;
 	}
 	private async pullMessages(args: any, header: any): Promise<string> {
-		console.log("pullMessages(): " + util.inspect(args, false, null, true));
+		//console.log("pullMessages(): " + util.inspect(args, false, null, true));
 		//console.log("pullMessages(header): " + util.inspect(header, false, null, true));
 
 		const subscriptionId = this.getSubscriptionIdFromToHeader(header.to);
@@ -220,7 +220,7 @@ export class EventsService {
 		const terminationTime = subscription.expirationTime;
 
 		const timeoutInSeconds = getDurationAsSeconds(args["timeout"]);
-		console.log("timeoutInSeconds: " + util.inspect(timeoutInSeconds, false, null, true));
+		//console.log("timeoutInSeconds: " + util.inspect(timeoutInSeconds, false, null, true));
 		await sleep(timeoutInSeconds * 1000);
 
 		return `
@@ -236,7 +236,7 @@ export class EventsService {
 
 		const subscriptionId = this.getSubscriptionIdFromToHeader(header.to);
 	
-		console.log("renew(): " + util.inspect(args, false, null, true));
+		//console.log("renew(): " + util.inspect(args, false, null, true));
 	
 		// Look up the subscription in the map
 		const subscription = this.subscriptions.get(subscriptionId);
