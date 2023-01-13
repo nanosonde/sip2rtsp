@@ -3,6 +3,9 @@
 # https://askubuntu.com/questions/972516/debian-frontend-environment-variable
 ARG DEBIAN_FRONTEND=noninteractive
 
+ARG AUDIO_IMAGE
+FROM $AUDIO_IMAGE as audio
+
 FROM debian:11 AS base
 
 FROM --platform=linux/amd64 debian:11 AS base_amd64
@@ -55,11 +58,11 @@ RUN pip3 install -r requirements.txt
 COPY requirements-wheels.txt /requirements-wheels.txt
 RUN pip3 wheel --wheel-dir=/wheels -r requirements-wheels.txt
 
-
 # Collect deps in a single layer
 FROM scratch AS deps-rootfs
-COPY --from=sip2rtsp-audio:latest /usr/local/pulseaudio/ /usr/local/pulseaudio/
-COPY --from=sip2rtsp-audio:latest /usr/local/gstreamer/ /usr/local/gstreamer/
+
+COPY --from=audio /usr/local/pulseaudio/ /usr/local/pulseaudio/
+COPY --from=audio /usr/local/gstreamer/ /usr/local/gstreamer/
 COPY --from=s6-overlay /rootfs/ /
 COPY docker/rootfs/ /
 

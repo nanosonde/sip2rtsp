@@ -13,32 +13,32 @@ local-audio:
 	docker buildx build -f Dockerfile.audio --tag sip2rtsp-audio:latest --load .
 
 local: version
-	docker buildx build --tag sip2rtsp:latest --load .
+	docker buildx build --build-arg AUDIO_IMAGE=sip2rtsp-audio:latest --tag sip2rtsp:latest --load .
 
 amd64:
 	docker buildx build -f Dockerfile.audio --platform linux/amd64 --tag $(IMAGE_REPO)-audio-amd64:$(VERSION)-$(COMMIT_HASH) --load .
-	docker buildx build --platform linux/amd64 --tag $(IMAGE_REPO):$(VERSION)-$(COMMIT_HASH) .
+	docker buildx build --platform linux/amd64 --build-arg AUDIO_IMAGE=$(IMAGE_REPO)-audio-amd64:$(VERSION)-$(COMMIT_HASH) --tag $(IMAGE_REPO)-amd64:$(VERSION)-$(COMMIT_HASH) .
 
 arm64:
 	docker buildx build -f Dockerfile.audio --platform linux/arm64/v8 --tag $(IMAGE_REPO)-audio-arm64:$(VERSION)-$(COMMIT_HASH) --load .
-	docker buildx build --platform linux/arm64/v8 --tag $(IMAGE_REPO):$(VERSION)-$(COMMIT_HASH) .
+	docker buildx build --platform linux/arm64/v8 --build-arg AUDIO_IMAGE=$(IMAGE_REPO)-audio-arm64:$(VERSION)-$(COMMIT_HASH) --tag $(IMAGE_REPO)-arm64:$(VERSION)-$(COMMIT_HASH) .
 
 #armv7:
 #	docker buildx build -f Dockerfile.audio --platform linux/arm/v7 --tag $(IMAGE_REPO)-audio-armv7:$(VERSION)-$(COMMIT_HASH) --load .
-#	docker buildx build --platform linux/arm/v7 --tag $(IMAGE_REPO):$(VERSION)-$(COMMIT_HASH) .
+#	docker buildx build --platform linux/arm/v7 --build-arg AUDIO_IMAGE=$(IMAGE_REPO)-audio-armv7:$(VERSION)-$(COMMIT_HASH) --tag $(IMAGE_REPO)-armv7:$(VERSION)-$(COMMIT_HASH) .
 
 #build: version amd64 arm64 armv7
 #	docker buildx build -f Dockerfile.audio --platform linux/arm/v7,linux/arm64/v8,linux/amd64 --tag $(IMAGE_REPO)-audio:$(VERSION)-$(COMMIT_HASH) --load .
-#	docker buildx build --platform linux/arm/v7,linux/arm64/v8,linux/amd64 --tag $(IMAGE_REPO):$(VERSION)-$(COMMIT_HASH) .
+#	docker buildx build --platform linux/arm/v7,linux/arm64/v8,linux/amd64 --build-arg AUDIO_IMAGE=$(IMAGE_REPO)-audio:$(VERSION)-$(COMMIT_HASH) --tag $(IMAGE_REPO):$(VERSION)-$(COMMIT_HASH) .
 build: version amd64 arm64
 	docker buildx build -f Dockerfile.audio --platform linux/arm64/v8,linux/amd64 --tag $(IMAGE_REPO)-audio:$(VERSION)-$(COMMIT_HASH) --load .
-	docker buildx build --platform linux/arm64/v8,linux/amd64 --tag $(IMAGE_REPO):$(VERSION)-$(COMMIT_HASH) .
+	docker buildx build --platform linux/arm64/v8,linux/amd64 --build-arg AUDIO_IMAGE=$(IMAGE_REPO)-audio:$(VERSION)-$(COMMIT_HASH) --tag $(IMAGE_REPO):$(VERSION)-$(COMMIT_HASH) .
 
 push: build
 #	docker buildx build --push --platform linux/arm/v7,linux/arm64/v8,linux/amd64 --tag $(IMAGE_REPO)-audio:$(GITHUB_REF_NAME)-$(COMMIT_HASH) .
 #	docker buildx build --push --platform linux/arm/v7,linux/arm64/v8,linux/amd64 --tag $(IMAGE_REPO):${GITHUB_REF_NAME}-$(COMMIT_HASH) .
 	docker buildx build --push --platform linux/arm64/v8,linux/amd64 --tag $(IMAGE_REPO)-audio:$(GITHUB_REF_NAME)-$(COMMIT_HASH) .
-	docker buildx build --push --platform linux/arm64/v8,linux/amd64 --tag $(IMAGE_REPO):${GITHUB_REF_NAME}-$(COMMIT_HASH) .
+	docker buildx build --push --platform linux/arm64/v8,linux/amd64 --build-arg AUDIO_IMAGE=$(IMAGE_REPO)-audio:$(VERSION)-$(COMMIT_HASH) --tag $(IMAGE_REPO):${GITHUB_REF_NAME}-$(COMMIT_HASH) .
 
 run: local
 	docker run --rm --network host --volume=${PWD}/config/config.yml:/config/config.yml --name sip2rtsp sip2rtsp:latest
