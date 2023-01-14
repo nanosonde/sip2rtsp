@@ -3,8 +3,8 @@
 # https://askubuntu.com/questions/972516/debian-frontend-environment-variable
 ARG DEBIAN_FRONTEND=noninteractive
 
-ARG AUDIO_IMAGE
-FROM $AUDIO_IMAGE as audio
+ARG PULSEGST_IMAGE
+FROM $PULSEGST_IMAGE as pulsegstimage
 
 FROM debian:11 AS base
 
@@ -61,8 +61,8 @@ RUN pip3 wheel --wheel-dir=/wheels -r requirements-wheels.txt
 # Collect deps in a single layer
 FROM scratch AS deps-rootfs
 
-COPY --from=audio /usr/local/pulseaudio/ /usr/local/pulseaudio/
-COPY --from=audio /usr/local/gstreamer/ /usr/local/gstreamer/
+COPY --from=pulsegstimage /usr/local/pulseaudio/ /usr/local/pulseaudio/
+COPY --from=pulsegstimage /usr/local/gstreamer/ /usr/local/gstreamer/
 COPY --from=s6-overlay /rootfs/ /
 COPY docker/rootfs/ /
 
