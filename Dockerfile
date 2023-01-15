@@ -3,7 +3,7 @@
 # https://askubuntu.com/questions/972516/debian-frontend-environment-variable
 ARG DEBIAN_FRONTEND=noninteractive
 
-ARG PULSEGST_IMAGE ghcr.io/nanosonde/pulsegst:main-fe22165
+ARG PULSEGST_IMAGE=ghcr.io/nanosonde/pulsegst:main-fe22165
 FROM $PULSEGST_IMAGE as pulsegstimage
 
 FROM debian:11 AS base
