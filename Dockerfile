@@ -161,7 +161,7 @@ COPY --from=onvif-server-build /work/dist/ onvif-server/
 COPY --from=onvif-server-build /work/node_modules/ onvif-server/node_modules/
 
 # sip2rtsp final container
-FROM deps
+FROM deps as sip2rtsp
 
 WORKDIR /opt/sip2rtsp/
 COPY --from=rootfs / /
