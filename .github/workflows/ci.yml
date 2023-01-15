@@ -8,6 +8,7 @@ on:
 
 env:
   PYTHON_VERSION: 3.9
+  PULSEGST_IMAGE: ghcr.io/nanosonde/pulsegst:main-fe22165
 
 jobs:
   multi_arch_build:
@@ -36,6 +37,8 @@ jobs:
           #platforms: linux/amd64,linux/arm64,linux/arm/v7
           platforms: linux/amd64,linux/arm64
           target: sip2rtsp
+          build-args: |
+            PULSEGST_IMAGE=${{PULSEGST_IMAGE}}
           tags: |
             ghcr.io/nanosonde/sip2rtsp:${{ github.ref_name }}-${{ env.SHORT_SHA }}
           cache-from: type=gha
