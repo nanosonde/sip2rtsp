@@ -38,7 +38,7 @@ jobs:
           platforms: linux/amd64,linux/arm64
           target: sip2rtsp
           build-args: |
-            PULSEGST_IMAGE=${{PULSEGST_IMAGE}}
+            PULSEGST_IMAGE=${{ PULSEGST_IMAGE }}
           tags: |
             ghcr.io/nanosonde/sip2rtsp:${{ github.ref_name }}-${{ env.SHORT_SHA }}
           cache-from: type=gha
