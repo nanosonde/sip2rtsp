@@ -4,7 +4,6 @@
 ARG DEBIAN_FRONTEND=noninteractive
 
 ARG PULSEGST_IMAGE
-#ARG PULSEGST_IMAGE=ghcr.io/nanosonde/pulsegst:main-fe22165
 FROM $PULSEGST_IMAGE as pulsegstimage
 
 FROM debian:11 AS base
