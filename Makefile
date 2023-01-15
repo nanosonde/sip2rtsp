@@ -5,7 +5,9 @@ VERSION = 0.0.1
 IMAGE_REPO ?= ghcr.io/nanosonde/sip2rtsp
 CURRENT_UID := $(shell id -u)
 CURRENT_GID := $(shell id -g)
-PULSEGST_IMAGE = ghcr.io/nanosonde/pulsegst:main-00112233
+PULSEGST_IMAGE = ghcr.io/nanosonde/pulsegst:main-fe22165
+PULSEGST_IMAGE_AMD64 = ghcr.io/nanosonde/pulsegst:main-fe22165@sha256:bc57895355a3f593de0c47dee54fbc15361c9620d621b4607b4d3f5b81cd9d42
+PULSEGST_IMAGE_ARM64 = ghcr.io/nanosonde/pulsegst:main-fe22165@sha256:a27e50676ea5c703c91968dbe6e1ec0a4665e5fba23ef038c680c07b422b7685
 
 version:
 	echo 'VERSION = "$(VERSION)-$(COMMIT_HASH)"' > sip2rtsp/version.py
@@ -14,13 +16,13 @@ local: version
 	docker buildx build --build-arg PULSEGST_IMAGE=pulsegst:latest --tag sip2rtsp:latest .
 
 amd64:
-	docker buildx build --platform linux/amd64 --build-arg PULSEGST_IMAGE=$(PULSEGST_IMAGE) --tag $(IMAGE_REPO)-amd64:$(VERSION)-$(COMMIT_HASH) .
+	docker buildx build --platform linux/amd64 --build-arg PULSEGST_IMAGE=$(PULSEGST_IMAGE_AMD64) --tag $(IMAGE_REPO):$(VERSION)-$(COMMIT_HASH) .
 
 arm64:
-	docker buildx build --platform linux/arm64 --build-arg PULSEGST_IMAGE=$(PULSEGST_IMAGE) --tag $(IMAGE_REPO)-arm64:$(VERSION)-$(COMMIT_HASH) .
+	docker buildx build --platform linux/arm64 --build-arg PULSEGST_IMAGE=$(PULSEGST_IMAGE_ARM64) --tag $(IMAGE_REPO):$(VERSION)-$(COMMIT_HASH) .
 
 #armv7:
-#	docker buildx build --platform linux/arm/v7 --build-arg PULSEGST_IMAGE=$(PULSEGST_IMAGE) --tag $(IMAGE_REPO)-armv7:$(VERSION)-$(COMMIT_HASH) .
+#	docker buildx build --platform linux/arm/v7 --build-arg PULSEGST_IMAGE=$(PULSEGST_IMAGE_ARMv7) --tag $(IMAGE_REPO):$(VERSION)-$(COMMIT_HASH) .
 
 #build: version amd64 arm64 armv7
 build: version amd64 arm64
