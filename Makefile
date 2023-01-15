@@ -13,25 +13,25 @@ version:
 	echo 'VERSION = "$(VERSION)-$(COMMIT_HASH)"' > sip2rtsp/version.py
 
 local: version
-	docker buildx build --build-arg PULSEGST_IMAGE=pulsegst:latest --tag sip2rtsp:latest .
+	docker buildx build --build-arg PULSEGST_IMAGE=pulsegst:latest --target=sip2rtsp --tag sip2rtsp:latest .
 
 amd64:
-	docker buildx build --platform linux/amd64 --build-arg PULSEGST_IMAGE=$(PULSEGST_IMAGE_AMD64) --tag $(IMAGE_REPO):$(VERSION)-$(COMMIT_HASH) .
+	docker buildx build --platform linux/amd64 --build-arg PULSEGST_IMAGE=$(PULSEGST_IMAGE_AMD64) --target=sip2rtsp --tag $(IMAGE_REPO):$(VERSION)-$(COMMIT_HASH) .
 
 arm64:
-	docker buildx build --platform linux/arm64 --build-arg PULSEGST_IMAGE=$(PULSEGST_IMAGE_ARM64) --tag $(IMAGE_REPO):$(VERSION)-$(COMMIT_HASH) .
+	docker buildx build --platform linux/arm64 --build-arg PULSEGST_IMAGE=$(PULSEGST_IMAGE_ARM64) --target=sip2rtsp --tag $(IMAGE_REPO):$(VERSION)-$(COMMIT_HASH) .
 
 #armv7:
-#	docker buildx build --platform linux/arm/v7 --build-arg PULSEGST_IMAGE=$(PULSEGST_IMAGE_ARMv7) --tag $(IMAGE_REPO):$(VERSION)-$(COMMIT_HASH) .
+#	docker buildx build --platform linux/arm/v7 --build-arg PULSEGST_IMAGE=$(PULSEGST_IMAGE_ARMv7) --target=sip2rtsp --tag $(IMAGE_REPO):$(VERSION)-$(COMMIT_HASH) .
 
 #build: version amd64 arm64 armv7
 build: version amd64 arm64
-#	docker buildx build --platform linux/arm/v7,linux/arm64,linux/amd64 --build-arg PULSEGST_IMAGE=$(PULSEGST_IMAGE) --tag $(IMAGE_REPO):$(VERSION)-$(COMMIT_HASH) .
-	docker buildx build --platform linux/arm64,linux/amd64 --build-arg PULSEGST_IMAGE=$(PULSEGST_IMAGE) --tag $(IMAGE_REPO):$(VERSION)-$(COMMIT_HASH) .
+#	docker buildx build --platform linux/arm/v7,linux/arm64,linux/amd64 --build-arg PULSEGST_IMAGE=$(PULSEGST_IMAGE) --target=sip2rtsp --tag $(IMAGE_REPO):$(VERSION)-$(COMMIT_HASH) .
+	docker buildx build --platform linux/arm64,linux/amd64 --build-arg PULSEGST_IMAGE=$(PULSEGST_IMAGE) --target=sip2rtsp --tag $(IMAGE_REPO):$(VERSION)-$(COMMIT_HASH) .
 
 push: build
-#	docker buildx build --push --platform linux/arm/v7,linux/arm64,linux/amd64 --tag $(IMAGE_REPO):${GITHUB_REF_NAME}-$(COMMIT_HASH) .
-	docker buildx build --push --platform linux/arm64,linux/amd64 --tag $(IMAGE_REPO):${GITHUB_REF_NAME}-$(COMMIT_HASH) .
+#	docker buildx build --push --platform linux/arm/v7,linux/arm64,linux/amd64 --target=sip2rtsp --tag $(IMAGE_REPO):${GITHUB_REF_NAME}-$(COMMIT_HASH) .
+	docker buildx build --push --platform linux/arm64,linux/amd64 --target=sip2rtsp --tag $(IMAGE_REPO):${GITHUB_REF_NAME}-$(COMMIT_HASH) .
 
 run: local
 	docker run --rm --network host --volume=${PWD}/config/config.yml:/config/config.yml --name sip2rtsp sip2rtsp:latest
