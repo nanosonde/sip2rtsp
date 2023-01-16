@@ -19,11 +19,11 @@ chmod 644 /usr/local/pulseaudio/var/lib/pulse
 echo "Done.";
 
 echo "Modifying pulseaudio client config";
-cp -av /usr/local/pulseaudio/etc/pulse/client.conf /etc/pulse/client.conf
-echo "autospawn = no" >> /etc/pulse/client.conf
-echo "default-server = unix:/tmp/pulseaudio.socket" >> /etc/pulse/client.conf
-echo "enable-shm = no" >> /etc/pulse/client.conf
-echo "daemon-binary = /bin/true" >> /etc/pulse/client.conf
+echo "autospawn = no" >> /usr/local/pulseaudio/etc/pulse/client.conf
+echo "default-server = unix:/tmp/pulseaudio.socket" >> /usr/local/pulseaudio/etc/pulse/client.conf
+echo "enable-shm = no" >> /usr/local/pulseaudio/etc/pulse/client.conf
+echo "daemon-binary = /bin/true" >> /usr/local/pulseaudio/etc/pulse/client.conf
+cp -av /usr/local/pulseaudio/etc/pulse/client.conf /usr/local/pulseaudio/etc/pulse/client.conf
 echo "Done.";
 
 echo "Overwriting the default system mode script";
