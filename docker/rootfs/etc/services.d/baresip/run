@@ -4,8 +4,6 @@
 
 set -o errexit -o nounset -o pipefail
 
-sleep 1
-
 # Replace the bash process with the baresip process, redirecting stderr to stdout
 exec 2>&1
 exec baresip -f /etc/baresip -v

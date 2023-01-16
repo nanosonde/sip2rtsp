@@ -25,18 +25,7 @@ load-module module-device-restore
 load-module module-stream-restore
 load-module module-card-restore
 
-### Automatically augment property information from .desktop files
-### stored in /usr/share/application
-load-module module-augment-properties
-
 ### Load audio drivers statically
-### (it's probably better to not load these drivers manually, but instead
-### use module-udev-detect -- see below -- for doing this automatically)
-#load-module module-null-sink
-#load-module module-pipe-sink
-
-###meson --reconfigure -Dtests=false -Dudev=disabled -Dman=false -Dx11=disabled -Dbluez5=disabled -Ddbus=disabled -Dsystemd=disabled build
-
 load-module module-null-sink sink_name=BaresipSpeaker format=s16le channels=1 rate=8000 sink_properties="device.description='Baresip Speaker'"
 load-module module-remap-source source_name=BaresipSpeakerInput master=BaresipSpeaker.monitor format=s16le channels=1 rate=8000 channel_map=mono
 
@@ -44,23 +33,9 @@ load-module module-null-sink sink_name=BaresipMicrophone format=s16le channels=1
 load-module module-remap-source source_name=BaresipMicrophoneInput master=BaresipMicrophone.monitor format=s16le channels=1 rate=8000 channel_map=mono
 
 ### Load several protocols
-.ifexists module-esound-protocol-unix.so
-load-module module-esound-protocol-unix
-.endif
-load-module module-native-protocol-unix
-
-### Network access (may be configured with paprefs, so leave this commented
-### here if you plan to use paprefs)
-#load-module module-esound-protocol-tcp
-#load-module module-native-protocol-tcp
-
-### Load the RTP receiver module (also configured via paprefs, see above)
-#load-module module-rtp-recv
-
-### Load the RTP sender module (also configured via paprefs, see above)
-#load-module module-null-sink sink_name=rtp format=s16be channels=2 rate=44100 sink_properties="device.description='RTP Multicast Sink'"
-#load-module module-rtp-send source=rtp.monitor
-
+load-module module-native-protocol-unix auth-anonymous=1 socket=/tmp/pulseaudio.socket
+load-module module-cli-protocol-unix socket=/tmp/pulseaudio-cli.socket
+#load-module module-native-protocol-tcp auth-anonymous=1
 
 ### Automatically restore the default sink/source when changed by the user
 ### during runtime
@@ -85,11 +60,5 @@ load-module module-filter-heuristics
 load-module module-filter-apply
 
 ### Make some devices default
-#set-default-sink output
-#set-default-source input
-
-### Allow including a default.pa.d directory, which if present, can be used
-### for additional configuration snippets.
-### Note that those snippet files must have a .pa file extension, not .conf
-.nofail
-.include /etc/pulse/default.pa.d
+set-default-sink BaresipSpeaker
+set-default-source BaresipMicrophoneInput

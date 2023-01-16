@@ -7,6 +7,8 @@ services:
     build:
       context: .
       target: devcontainer
+      args:
+        PULSEGST_IMAGE: ghcr.io/nanosonde/pulsegst:main-fe22165
     volumes:
       - .:/workspace/sip2rtsp:cached
       - /etc/localtime:/etc/localtime:ro
