@@ -15,7 +15,7 @@ echo "Done.";
 echo "Setting up pulseaudio runtime path";
 mkdir -p /usr/local/pulseaudio/var/lib/pulse
 chown pulse.pulse /usr/local/pulseaudio/var/lib/pulse
-chmod 644 /usr/local/pulseaudio/var/lib/pulse
+chmod 777 /usr/local/pulseaudio/var/lib/pulse
 echo "Done.";
 
 echo "Modifying pulseaudio client config";

@@ -20,7 +20,7 @@ load-module module-remap-source source_name=BaresipMicrophoneInput master=Baresi
 
 ### Load several protocols
 load-module module-native-protocol-unix auth-anonymous=1 socket=/tmp/pulseaudio.socket
-load-module module-cli-protocol-unix socket=/tmp/pulseaudio-cli.socket
+load-module module-cli-protocol-unix
 #load-module module-native-protocol-tcp auth-anonymous=1
 
 ### Automatically restore the default sink/source when changed by the user
