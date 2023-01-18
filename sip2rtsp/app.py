@@ -2,7 +2,7 @@ import logging
 
 from sip2rtsp.version import VERSION
 
-from .gi import GstRtspServer
+from .gi import GstRtspServer, GstRtsp
 
 logger = logging.getLogger(__name__)
 
@@ -30,8 +30,9 @@ class Sip2RtspApp:
         self.factory.set_enable_rtcp(False)
         # self.factory.set_protocols(GstRtsp.RTSPLowerTrans.TCP)
         # self.factory.set_profiles(GstRtsp.RTSPProfile.AVP)
-        self.factory.connect("media-constructed", self.media_constructed)
-        self.factory.connect("media-configure", self.media_configure)
+        # self.factory.connect("media-constructed", self.media_constructed)
+        # self.factory.connect("media-configure", self.media_configure)
+        self.server.connect("client-connected", self.client_connected)
         self.server.get_mount_points().add_factory("/test", self.factory)
 
         self.server.attach(self.loop.get_context())
@@ -42,6 +43,72 @@ class Sip2RtspApp:
 
     def stop(self) -> None:
         logger.info(f"Stopping...")
+
+    def client_play_request(self, client, context: GstRtspServer.RTSPContext):
+        logger.info(
+            "client_play_request(): remote ip: {remoteip}".format(
+                remoteip=client.get_connection().get_ip()
+            )
+        )
+        reqmsg: GstRtsp.RTSPMessage = context.request
+        res, value = reqmsg.get_header(GstRtsp.RTSPHeaderField.REQUIRE, 0)
+        if res == GstRtsp.RTSPResult.OK:
+            logger.info("client_play_request(): require: {value}".format(value=value))
+
+    def client_setup_request(self, client, context: GstRtspServer.RTSPContext):
+        control = context.stream.get_control()
+        caps = context.stream.get_caps()
+        caps = caps.to_string() if caps else "n/a"
+        logger.info(
+            "client_setup_request(): remote ip: {remoteip} control: {control}, caps: {caps}".format(
+                remoteip=client.get_connection().get_ip(), control=control, caps=caps
+            )
+        )
+        reqmsg: GstRtsp.RTSPMessage = context.request
+        reqmsg.dump()
+        res, value = reqmsg.get_header(GstRtsp.RTSPHeaderField.REQUIRE, 0)
+        if res == GstRtsp.RTSPResult.OK:
+            logger.info("client_setup_request(): require: {value}".format(value=value))
+
+    def client_describe_request(self, client, context: GstRtspServer.RTSPContext):
+        logger.info(
+            "client_describe_request(): remote ip: {remoteip}".format(
+                remoteip=client.get_connection().get_ip()
+            )
+        )
+        reqmsg: GstRtsp.RTSPMessage = context.request
+        res, value = reqmsg.get_header(GstRtsp.RTSPHeaderField.REQUIRE, 0)
+        if res == GstRtsp.RTSPResult.OK:
+            logger.info(
+                "client_describe_request(): require: {value}".format(value=value)
+            )
+
+    def client_send_message(self, client, _whatsthis, message):
+        logger.info(
+            "client_send_message(): remote ip: {remoteip} body: \n{body}".format(
+                remoteip=client.get_connection().get_ip(),
+                body=message.get_body().data.decode("utf-8"),
+            )
+        )
+
+    def client_closed(self, client):
+        logger.info(
+            "client_closed(): remote ip: {remoteip}".format(
+                remoteip=client.get_connection().get_ip()
+            )
+        )
+
+    def client_connected(self, server, client):
+        logger.info(
+            "client_connected(): remote ip: {remoteip}".format(
+                remoteip=client.get_connection().get_ip()
+            )
+        )
+        client.connect("closed", self.client_closed)
+        client.connect("describe-request", self.client_describe_request)
+        client.connect("setup-request", self.client_setup_request)
+        client.connect("play-request", self.client_play_request)
+        # client.connect("send_message", self.client_send_message)
 
     def media_unprepared(self, media):
         logger.info(

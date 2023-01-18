@@ -20,8 +20,6 @@ if __name__ == "__main__":
 
     loop = GLib.MainLoop()
 
-    thread = threading.Thread(target=loop.run)
-
     sip2rtsp_app = Sip2RtspApp(loop)
 
     def receiveSignal(signalNumber: int, frame: Optional[FrameType]) -> None:
@@ -30,12 +28,12 @@ if __name__ == "__main__":
         logger.info(f"Quitting glib main loop...")
         loop.quit()
         logger.info(f"Done.")
-        logger.info(f"Waiting for glib thread to join...")
-        thread.join()
-        logger.info(f"Done.")
 
     signal.signal(signal.SIGINT, receiveSignal)
 
     sip2rtsp_app.start()
 
-    thread.start()
+    try:
+        loop.run()
+    except KeyboardInterrupt:
+        pass
