@@ -30,6 +30,7 @@ class Sip2RtspApp:
         self.factory.set_enable_rtcp(False)
         # self.factory.set_protocols(GstRtsp.RTSPLowerTrans.TCP)
         # self.factory.set_profiles(GstRtsp.RTSPProfile.AVP)
+        self.factory.connect("media-constructed", self.media_constructed)
         self.factory.connect("media-configure", self.media_configure)
         self.server.get_mount_points().add_factory("/test", self.factory)
 
@@ -42,6 +43,32 @@ class Sip2RtspApp:
     def stop(self) -> None:
         logger.info(f"Stopping...")
 
+    def media_unprepared(self, media):
+        logger.info(
+            "media_unprepared(): media: {media}, status: {status}".format(
+                media=str(media), status=media.get_status()
+            )
+        )
+
+        n_streams = media.n_streams()
+        logger.info(
+            "media_unprepared(): number of streams: {num}".format(num=n_streams)
+        )
+        for n in range(n_streams):
+            stream = media.get_stream(n)
+            if stream:
+                logger.info(
+                    "media_unprepared(): stream {n}: index: {index}".format(
+                        n=n, index=stream.get_index()
+                    )
+                )
+            # Gst.debug_bin_to_dot_file(
+            #     media.get_stream(n).get_joined_bin(),
+            #     Gst.DebugGraphDetails.ALL,
+            #     "stream" + str(n),
+            # )
+            # media.get_stream(n).set_blocked(False)
+
     def media_prepared(self, media):
         logger.info(
             "media_prepared(): media: {media}, status: {status}".format(
@@ -52,11 +79,13 @@ class Sip2RtspApp:
         n_streams = media.n_streams()
         logger.info("media_prepared(): number of streams: {num}".format(num=n_streams))
         for n in range(n_streams):
-            logger.info(
-                "media_prepared(): stream {n}: ssrc: {ssrc}".format(
-                    n=n, ssrc=media.get_stream(n).get_ssrc()
+            stream = media.get_stream(n)
+            if stream:
+                logger.info(
+                    "media_prepared(): stream {n}: ssrc: {ssrc}".format(
+                        n=n, ssrc=stream.get_ssrc()
+                    )
                 )
-            )
             # Gst.debug_bin_to_dot_file(
             #     media.get_stream(n).get_joined_bin(),
             #     Gst.DebugGraphDetails.ALL,
@@ -64,13 +93,28 @@ class Sip2RtspApp:
             # )
             # media.get_stream(n).set_blocked(False)
 
+    def media_constructed(self, factory, media):
+        logger.info(
+            "media_constructed(): media: {media}, status: {status}".format(
+                media=str(media), status=media.get_status()
+            )
+        )
+
+        media.connect("unprepared", self.media_unprepared)
+        media.connect("prepared", self.media_prepared)
+
+        n_streams = media.n_streams()
+        logger.info(
+            "media_constructed(): number of streams: {num}".format(num=n_streams)
+        )
+
     def media_configure(self, factory, media):
         logger.info(
             "media_configure(): media: {media}, status: {status}".format(
                 media=str(media), status=media.get_status()
             )
         )
-        media.connect("prepared", self.media_prepared)
+
         # Gst.debug_bin_to_dot_file(
         #     media.get_element(), Gst.DebugGraphDetails.ALL, "media-configure"
         # )

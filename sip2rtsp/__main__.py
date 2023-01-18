@@ -8,7 +8,6 @@ import signal
 from typing import Optional
 from types import FrameType
 import logging
-import time
 
 threading.current_thread().name = "sip2rtsp"
 
