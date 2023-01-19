@@ -104,8 +104,8 @@ FROM deps AS devcontainer
 
 # Do not start the actual sip2rtsp and onvif-server services on devcontainer as it will be started by VSCode
 # But start a fake services for simulating the logs
-COPY docker/fake_sip2rtsp_run /etc/services.d/sip2rtsp/run
-COPY docker/fake_onvif-server_run /etc/services.d/onvif-server/run
+COPY docker/fake_sip2rtsp_run /etc/s6-overlay/s6-rc.d/sip2rtsp/run
+COPY docker/fake_onvif-server_run /etc/s6-overlay/s6-rc.d/onvifsrv/run
 
 # Install Node 16
 RUN apt-get update \
