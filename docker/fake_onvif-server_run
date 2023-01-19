@@ -2,6 +2,11 @@
 # shellcheck shell=bash
 # Start the fake onvif-server service
 
+set -o errexit -o nounset -o pipefail
+
+# Tell S6-Overlay not to restart this service
+s6-svc -O .
+
 while true; do
   echo "The fake onvif-server service is running..."
   sleep 5s

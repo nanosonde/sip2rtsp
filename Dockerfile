@@ -87,26 +87,14 @@ RUN --mount=type=bind,from=wheels,source=/wheels,target=/deps/wheels \
 
 COPY --from=deps-rootfs / /
 
-RUN echo "/usr/local/gstreamer/lib/x86_64-linux-gnu" > /etc/ld.so.conf.d/gstreamer.conf \
-    && ldconfig
+# make sure the dynlib loader finds our libs from /etc/ld.so.conf.d
+RUN ldconfig
 
 #EXPOSE 8554
-#EXPOSE 8555
+#EXPOSE 8555/tcp 8555/udp
 
-# Fails if cont-init.d fails
-ENV S6_BEHAVIOUR_IF_STAGE2_FAILS=2
-# Wait indefinitely for cont-init.d to finish before starting services
-ENV S6_CMD_WAIT_FOR_SERVICES=1
-ENV S6_CMD_WAIT_FOR_SERVICES_MAXTIME=0
-# Give services (including Frigate) 30 seconds to stop before killing them
-# But this is not working currently because of:
-# https://github.com/just-containers/s6-overlay/issues/503
-ENV S6_SERVICES_GRACETIME=30000
 # Configure logging to prepend timestamps, log to stdout, keep 0 archives and rotate on 10MB
 ENV S6_LOGGING_SCRIPT="T 1 n0 s10000000 T"
-# TODO: remove after a new version of s6-overlay is released. See:
-# https://github.com/just-containers/s6-overlay/issues/460#issuecomment-1327127006
-ENV S6_SERVICES_READYTIME=50
 
 ENTRYPOINT ["/init"]
 CMD []

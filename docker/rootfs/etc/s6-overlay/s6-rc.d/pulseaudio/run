@@ -1,0 +1,23 @@
+#!/command/with-contenv bash
+# shellcheck shell=bash
+# Start the pulseaudio service
+
+set -o errexit -o nounset -o pipefail
+
+# Tell S6-Overlay not to restart this service
+s6-svc -O .
+
+echo "[INFO] Starting pulseaudio..." >&2
+
+rm -rf /tmp/pulse-* ~/.pulse/*-runtime
+
+#meson --reconfigure -Dtests=false -Dudev=disabled -Dman=false -Dx11=disabled -Dbluez5=disabled -Ddbus=disabled -Dsystemd=disabled build
+
+# W: [pulseaudio] main.c: OK, so you are running PA in system mode. Please make sure that you actually do want to do that.
+# W: [pulseaudio] main.c: Please read http://www.freedesktop.org/wiki/Software/PulseAudio/Documentation/User/WhatIsWrongWithSystemWide/ for an explanation why system mode is usually a bad idea.
+# A patch of the pulseaudio source code would be required to turn off the annoying warning message about the system mode of pulseaudio. 
+# Our usecase is very similiar to the embedded one as we do not have multiple users.
+
+# Replace the bash process with the pulseaudio daemon process, redirecting stderr to stdout
+exec 2>&1
+exec /usr/local/pulseaudio/bin/pulseaudio --system --log-level=1 --log-target=stderr --disable-shm=true --disallow-exit=true --disallow-module-loading --exit-idle-time=-1 -v
