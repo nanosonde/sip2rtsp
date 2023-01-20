@@ -1,8 +1,9 @@
+import asyncio
 import logging
 
 from sip2rtsp.version import VERSION
-
-from .gi import GstRtspServer, GstRtsp
+from sip2rtsp.gi import GstRtspServer, GstRtsp
+from sip2rtsp.baresip_ctrl import BareSipControl
 
 logger = logging.getLogger(__name__)
 
@@ -14,8 +15,10 @@ launch_string = f'souphttpsrc location=http://10.10.10.10:54321/stream is-live=t
 
 
 class Sip2RtspApp:
-    def __init__(self, loop) -> None:
+    def __init__(self, aioloop, loop) -> None:
+        self.aioloop = aioloop
         self.loop = loop
+
         self.server = GstRtspServer.RTSPOnvifServer.new()
         self.factory = GstRtspServer.RTSPOnvifMediaFactory.new()
         self.factory.set_media_gtype(GstRtspServer.RTSPOnvifMedia)
@@ -37,12 +40,23 @@ class Sip2RtspApp:
 
         self.server.attach(self.loop.get_context())
 
-    def start(self) -> None:
+        self.bs_ctrl = BareSipControl(self.aioloop)
+
+        # self.stop_future = self.aioloop.create_future()
+
+    async def start(self) -> None:
         logger.info(f"Starting SIP2RTSP ({VERSION})")
         self.factory.set_launch(launch_string)
+        # try:
+        await self.bs_ctrl.run_client()
+        # except asyncio.CancelledError:
+        #     pass
+        # finally:
+        #     pass
 
     def stop(self) -> None:
         logger.info(f"Stopping...")
+        # self.stop_future.set_result(True)
 
     def client_play_request(self, client, context: GstRtspServer.RTSPContext):
         logger.info(
@@ -51,6 +65,7 @@ class Sip2RtspApp:
             )
         )
         reqmsg: GstRtsp.RTSPMessage = context.request
+        reqmsg.dump()
         res, value = reqmsg.get_header(GstRtsp.RTSPHeaderField.REQUIRE, 0)
         if res == GstRtsp.RTSPResult.OK:
             logger.info("client_play_request(): require: {value}".format(value=value))
@@ -65,7 +80,7 @@ class Sip2RtspApp:
             )
         )
         reqmsg: GstRtsp.RTSPMessage = context.request
-        reqmsg.dump()
+        # reqmsg.dump()
         res, value = reqmsg.get_header(GstRtsp.RTSPHeaderField.REQUIRE, 0)
         if res == GstRtsp.RTSPResult.OK:
             logger.info("client_setup_request(): require: {value}".format(value=value))
