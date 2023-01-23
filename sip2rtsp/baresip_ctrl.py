@@ -12,14 +12,14 @@ class BaresipProtocol(asyncio.Protocol):
         self.baresip_control = baresip_control
 
     def connection_made(self, _):
-        logger.info("Connection established")
+        logger.info("Baresip control connection established")
 
     def data_received(self, data):
         # logger.debug("Data received: {data}".format(data=data))
         self.baresip_control.handle_data(data)
 
     def connection_lost(self, exc):
-        logger.info("Connection lost")
+        logger.info("Baresip control connection lost")
         self.baresip_control.handle_connection_lost(exc)
 
 
@@ -37,9 +37,30 @@ class BaresipControl:
             lambda: BaresipProtocol(self), self.host, self.port
         )
 
+    def stop(self):
+        self.transport.close()
+
     def set_callback(self, callback):
-        """Set the callback function to be called when an incoming call event is signalled"""
+        """Set the callback function to be called when an event is signalled"""
         self.callback = callback
+
+    async def callstat(self):
+        """Get current call details"""
+        token = str(uuid.uuid4())
+        command = {"command": "callstat", "params": "", "token": token}
+        future = asyncio.Future()
+        self.pending_requests[token] = future
+        self._send_command(command)
+        return await asyncio.wait_for(future, timeout=self.timeout)
+
+    async def listcalls(self):
+        """List active calls"""
+        token = str(uuid.uuid4())
+        command = {"command": "listcalls", "params": "", "token": token}
+        future = asyncio.Future()
+        self.pending_requests[token] = future
+        self._send_command(command)
+        return await asyncio.wait_for(future, timeout=self.timeout)
 
     async def dial(self, sip_address):
         """Initiate a call to the specified SIP address"""
@@ -59,6 +80,15 @@ class BaresipControl:
         self._send_command(command)
         return await asyncio.wait_for(future, timeout=self.timeout)
 
+    async def accept(self):
+        """Accept the incoming call"""
+        token = str(uuid.uuid4())
+        command = {"command": "accept", "token": token}
+        future = asyncio.Future()
+        self.pending_requests[token] = future
+        self._send_command(command)
+        return await asyncio.wait_for(future, timeout=self.timeout)
+
     def _send_command(self, command):
         """Send a command to the Baresip instance"""
         netstring = pynetstring.encode(json.dumps(command).encode())
@@ -72,9 +102,9 @@ class BaresipControl:
             future = self.pending_requests.pop(token, None)
             if future:
                 if data["ok"]:
-                    future.set_result(data)
+                    future.set_result(data["data"])
                 else:
-                    future.set_exception(Exception(data))
+                    future.set_exception(Exception(data["data"]))
         elif "event" in data:
             if self.callback:
                 self.callback(data)

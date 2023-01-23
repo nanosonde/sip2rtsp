@@ -52,13 +52,17 @@ class Sip2RtspApp:
 
         await self.bs_ctrl.start()
 
-        logger.info("Dialing...")
-        response = await self.bs_ctrl.dial("sip:11@10.10.10.80")
-        logger.info("Dial command response: " + str(response["ok"]))
+        # logger.info("Dialing...")
+        # response = await self.bs_ctrl.dial("sip:11@10.10.10.80")
+        # logger.info("Dial command response: " + response)
 
-    def stop(self) -> None:
-        logger.info(f"Stopping...")
-        # self.stop_future.set_result(True)
+        response = await self.bs_ctrl.listcalls()
+        logger.info("listcalls command response: " + response)
+
+    async def stop(self) -> None:
+        logger.info(f"Hanging up...")
+        response = await self.bs_ctrl.hangup()
+        logger.info("Hangup command response: " + response)
 
     def event_handler(self, data):
         logger.info("Event: " + str(data))
