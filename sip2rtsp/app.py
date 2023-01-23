@@ -3,7 +3,8 @@ import logging
 
 from sip2rtsp.version import VERSION
 from sip2rtsp.gi import GstRtspServer, GstRtsp
-from sip2rtsp.baresip_ctrl import BareSipControl
+from sip2rtsp.baresip_ctrl import BaresipControl
+from sip2rtsp.const import BARESIP_CTRL_PORT, BARESIP_CTRL_REQUEST_TIMEOUT
 
 logger = logging.getLogger(__name__)
 
@@ -40,23 +41,27 @@ class Sip2RtspApp:
 
         self.server.attach(self.loop.get_context())
 
-        self.bs_ctrl = BareSipControl(self.aioloop)
-
-        # self.stop_future = self.aioloop.create_future()
+        self.bs_ctrl = BaresipControl(
+            "127.0.0.1", BARESIP_CTRL_PORT, BARESIP_CTRL_REQUEST_TIMEOUT
+        )
+        self.bs_ctrl.set_callback(self.event_handler)
 
     async def start(self) -> None:
         logger.info(f"Starting SIP2RTSP ({VERSION})")
         self.factory.set_launch(launch_string)
-        # try:
-        await self.bs_ctrl.run_client()
-        # except asyncio.CancelledError:
-        #     pass
-        # finally:
-        #     pass
+
+        await self.bs_ctrl.start()
+
+        logger.info("Dialing...")
+        response = await self.bs_ctrl.dial("sip:11@10.10.10.80")
+        logger.info("Dial command response: " + str(response["ok"]))
 
     def stop(self) -> None:
         logger.info(f"Stopping...")
         # self.stop_future.set_result(True)
+
+    def event_handler(self, data):
+        logger.info("Event: " + str(data))
 
     def client_play_request(self, client, context: GstRtspServer.RTSPContext):
         logger.info(

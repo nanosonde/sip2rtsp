@@ -1,52 +1,88 @@
 import logging
-import pynetstring
-import json
 import asyncio
-
-from sip2rtsp.const import BARESIP_CTRL_PORT
+import json
+import uuid
+import pynetstring
 
 logger = logging.getLogger(__name__)
 
 
-class BaresipCtrlProtocol(asyncio.Protocol):
-    def __init__(self, on_con_lost):
-        self.on_con_lost = on_con_lost
+class BaresipProtocol(asyncio.Protocol):
+    def __init__(self, baresip_control):
+        self.baresip_control = baresip_control
 
-    def connection_made(self, transport):
+    def connection_made(self, _):
         logger.info("Connection established")
-        # transport.write(self.message.encode())
-        # print("Data sent: {!r}".format(self.message))
 
-    def data_received(self, rawdata):
-        s = pynetstring.decode(rawdata.decode())
-        data = json.loads(s[0])
-        logger.debug("Data received: {data}".format(data=data))
-        if data["event"] == True:
-            logger.debug("Event received")
+    def data_received(self, data):
+        # logger.debug("Data received: {data}".format(data=data))
+        self.baresip_control.handle_data(data)
 
     def connection_lost(self, exc):
-        logger.info("Connection closed.")
-        if not self.on_con_lost.cancelled():
-            self.on_con_lost.set_result(True)
+        logger.info("Connection lost")
+        self.baresip_control.handle_connection_lost(exc)
 
 
-class BareSipControl:
-    def __init__(self, loop) -> None:
-        self.loop = loop
+class BaresipControl:
+    def __init__(self, host, port, timeout=5):
+        self.host = host
+        self.port = port
+        self.timeout = timeout
+        self.transport = None
+        self.pending_requests = {}
+        self.callback = None
 
-    async def run_client(self):
-        on_con_lost = self.loop.create_future()
-
-        transport, protocol = await self.loop.create_connection(
-            lambda: BaresipCtrlProtocol(on_con_lost), "127.0.0.1", 4444
+    async def start(self):
+        self.transport, _ = await asyncio.get_running_loop().create_connection(
+            lambda: BaresipProtocol(self), self.host, self.port
         )
 
-        # Wait until the protocol signals that the connection
-        # is lost and close the transport.
-        try:
-            await on_con_lost
-        except asyncio.CancelledError:
-            logger.debug(f'run_client(): future "on_con_lost" cancelled')
-        finally:
-            logger.debug(f"Closing transport...")
-            transport.close()
+    def set_callback(self, callback):
+        """Set the callback function to be called when an incoming call event is signalled"""
+        self.callback = callback
+
+    async def dial(self, sip_address):
+        """Initiate a call to the specified SIP address"""
+        token = str(uuid.uuid4())
+        command = {"command": "dial", "params": sip_address, "token": token}
+        future = asyncio.Future()
+        self.pending_requests[token] = future
+        self._send_command(command)
+        return await asyncio.wait_for(future, timeout=self.timeout)
+
+    async def hangup(self):
+        """Hang up the current call"""
+        token = str(uuid.uuid4())
+        command = {"command": "hangup", "token": token}
+        future = asyncio.Future()
+        self.pending_requests[token] = future
+        self._send_command(command)
+        return await asyncio.wait_for(future, timeout=self.timeout)
+
+    def _send_command(self, command):
+        """Send a command to the Baresip instance"""
+        netstring = pynetstring.encode(json.dumps(command).encode())
+        # logger.debug("Data sent: {netstring}".format(netstring=netstring))
+        self.transport.write(netstring)
+
+    def _receive(self, data):
+        """Receive and process data from the Baresip instance"""
+        if "response" in data:
+            token = data["token"]
+            future = self.pending_requests.pop(token, None)
+            if future:
+                if data["ok"]:
+                    future.set_result(data)
+                else:
+                    future.set_exception(Exception(data))
+        elif "event" in data:
+            if self.callback:
+                self.callback(data)
+
+    def handle_data(self, data):
+        s = pynetstring.decode(data.decode())
+        response = json.loads(s[0])
+        self._receive(response)
+
+    def handle_connection_lost(self, exc):
+        pass
