@@ -107,6 +107,7 @@ class BaresipControl:
                     future.set_exception(Exception(data["data"]))
         elif "event" in data:
             if self.callback:
+                del data["event"]
                 self.callback(data)
 
     def handle_data(self, data):

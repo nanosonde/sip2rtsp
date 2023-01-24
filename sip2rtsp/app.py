@@ -52,10 +52,6 @@ class Sip2RtspApp:
 
         await self.bs_ctrl.start()
 
-        logger.info("Dialing...")
-        response = await self.bs_ctrl.dial("sip:11@10.10.10.80")
-        logger.info("Dial command response: " + response)
-
         response = await self.bs_ctrl.listcalls()
         logger.info("listcalls command response: " + response)
 
@@ -93,6 +89,14 @@ class Sip2RtspApp:
         res, value = reqmsg.get_header(GstRtsp.RTSPHeaderField.REQUIRE, 0)
         if res == GstRtsp.RTSPResult.OK:
             logger.info("client_setup_request(): require: {value}".format(value=value))
+            if value == "www.onvif.org/ver20/backchannel":
+
+                async def dial():
+                    logger.info("Dialing...")
+                    await self.bs_ctrl.dial("sip:11@10.10.10.80")
+                    logger.info("Dialing done...")
+
+                asyncio.run_coroutine_threadsafe(dial(), self.aioloop)
 
     def client_describe_request(self, client, context: GstRtspServer.RTSPContext):
         logger.info(
@@ -121,6 +125,13 @@ class Sip2RtspApp:
                 remoteip=client.get_connection().get_ip()
             )
         )
+
+        async def hangup():
+            logger.info("Hanging up...")
+            await self.bs_ctrl.hangup()
+            logger.info("Hanging up done...")
+
+        asyncio.run_coroutine_threadsafe(hangup(), self.aioloop)
 
     def client_connected(self, server, client):
         logger.info(
