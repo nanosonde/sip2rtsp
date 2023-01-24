@@ -69,14 +69,14 @@ if __name__ == "__main__":
 
     try:
         asyncio.set_event_loop(loop)
-        logger.info(f"Entering loop.run_forever()...")
+        logger.debug(f"Entering loop.run_forever()...")
         loop.run_forever()
-        logger.info(f"Left loop.run_forever()...")
+        logger.debug(f"Left loop.run_forever()...")
     except KeyboardInterrupt:  # pragma: no branch
-        logger.info(f"Received KeyboardInterrupt")
+        logger.debug(f"Received KeyboardInterrupt")
     finally:
         loop.run_until_complete(main_task)
         loop.close()
         asyncio.set_event_loop(None)
 
-    logger.info(f"main() exit...")
+    logger.debug(f"main() exit...")
