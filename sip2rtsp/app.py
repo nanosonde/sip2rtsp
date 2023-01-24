@@ -8,6 +8,7 @@ from sip2rtsp.const import (
     BARESIP_CTRL_HOST,
     BARESIP_CTRL_PORT,
     BARESIP_CTRL_REQUEST_TIMEOUT,
+    EVENT_TYPE,
 )
 
 logger = logging.getLogger(__name__)
@@ -63,7 +64,15 @@ class Sip2RtspApp:
         logger.info(f"Stopped SIP2RTSP ({VERSION})")
 
     def event_handler(self, data):
-        logger.debug("Event: " + str(data))
+        # logger.debug("Event: " + str(data))
+        if data["type"] == EVENT_TYPE.CALL_INCOMING:
+            logger.info("Incoming call from {peeruri}".format(peeruri=data["peeruri"]))
+        elif data["type"] == EVENT_TYPE.CALL_CLOSED:
+            logger.info("Call closed from {peeruri}".format(peeruri=data["peeruri"]))
+        elif data["type"] == EVENT_TYPE.CALL_ESTABLISHED:
+            logger.info(
+                "Call established from {peeruri}".format(peeruri=data["peeruri"])
+            )
 
     def client_play_request(self, client, context: GstRtspServer.RTSPContext):
         logger.info(
