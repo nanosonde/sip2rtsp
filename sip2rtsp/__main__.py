@@ -15,6 +15,7 @@ threading.current_thread().name = "sip2rtsp"
 
 logger = logging.getLogger(__name__)
 
+
 async def shutdown(signal, loop, glib_loop, glib_thread):
 
     logging.info(f"Received exit signal {signal.name}...")
@@ -49,14 +50,21 @@ if __name__ == "__main__":
     glib_thread = threading.Thread(target=glib_loop.run)
     glib_thread.start()
 
+    sip2rtsp_app = Sip2RtspApp(loop, glib_loop)
+
+    async def graceful_shutdown(s, loop, glib_loop, glib_thread):
+        await sip2rtsp_app.stop()
+        await shutdown(s, loop, glib_loop, glib_thread)
+
     signals = (signal.SIGHUP, signal.SIGTERM, signal.SIGINT)
     for s in signals:
         loop.add_signal_handler(
             s,
-            lambda s=s: asyncio.create_task(shutdown(s, loop, glib_loop, glib_thread)),
+            lambda s=s: asyncio.create_task(
+                graceful_shutdown(s, loop, glib_loop, glib_thread)
+            ),
         )
 
-    sip2rtsp_app = Sip2RtspApp(loop, glib_loop)
     main_task = loop.create_task(sip2rtsp_app.start())
 
     try:

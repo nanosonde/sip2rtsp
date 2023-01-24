@@ -111,8 +111,9 @@ class BaresipControl:
 
     def handle_data(self, data):
         s = pynetstring.decode(data.decode())
-        response = json.loads(s[0])
-        self._receive(response)
+        for se in s:
+            response = json.loads(se)
+            self._receive(response)
 
     def handle_connection_lost(self, exc):
         pass
