@@ -8,12 +8,28 @@ import threading
 import signal
 import asyncio
 import logging
+import os
+import sys
+import traceback
 
 from sip2rtsp.app import Sip2RtspApp
+from sip2rtsp.config import Sip2RtspConfig
 
 threading.current_thread().name = "sip2rtsp"
 
 logger = logging.getLogger(__name__)
+
+
+def init_config() -> Sip2RtspConfig:
+    config_file = os.environ.get("CONFIG_FILE", "/config/config.yml")
+
+    # Check if we can use .yaml instead of .yml
+    config_file_yaml = config_file.replace(".yml", ".yaml")
+    if os.path.isfile(config_file_yaml):
+        config_file = config_file_yaml
+
+    user_config = Sip2RtspConfig.parse_file(config_file)
+    return user_config.runtime_config
 
 
 async def shutdown(signal, loop, glib_loop, glib_thread):
@@ -41,7 +57,27 @@ async def shutdown(signal, loop, glib_loop, glib_thread):
 
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.DEBUG)
+
+    try:
+        config = init_config()
+    except Exception as e:
+        print("*************************************************************")
+        print("*************************************************************")
+        print("***    Your config file is not valid!                     ***")
+        print("***    Please check the docs at                           ***")
+        print("***    https://github.com/nanosonde/sip2rtsp              ***")
+        print("*************************************************************")
+        print("*************************************************************")
+        print("***    Config Validation Errors                           ***")
+        print("*************************************************************")
+        print(e)
+        print(traceback.format_exc())
+        print("*************************************************************")
+        print("***    End Config Validation Errors                       ***")
+        print("*************************************************************")
+        sys.exit(1)
+
+    logging.basicConfig(level=logging.INFO)
 
     loop = asyncio.get_event_loop()
     loop.set_debug(False)
@@ -50,7 +86,7 @@ if __name__ == "__main__":
     glib_thread = threading.Thread(target=glib_loop.run)
     glib_thread.start()
 
-    sip2rtsp_app = Sip2RtspApp(loop, glib_loop)
+    sip2rtsp_app = Sip2RtspApp(loop, glib_loop, config)
 
     async def graceful_shutdown(s, loop, glib_loop, glib_thread):
         await sip2rtsp_app.stop()

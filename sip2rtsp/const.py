@@ -1,11 +1,11 @@
-from strenum import StrEnum
+from enum import Enum
 
 BARESIP_CTRL_HOST = "127.0.0.1"
 BARESIP_CTRL_PORT = 4444
 BARESIP_CTRL_REQUEST_TIMEOUT = 5
 
 
-class EVENT_TYPE(StrEnum):
+class EVENT_TYPE(str, Enum):
     CALL_INCOMING = "CALL_INCOMING"
     CALL_CLOSED = "CALL_CLOSED"
     CALL_LOCAL_SDP = "CALL_LOCAL_SDP"
@@ -13,3 +13,6 @@ class EVENT_TYPE(StrEnum):
     CALL_ESTABLISHED = "CALL_ESTABLISHED"
     CALL_RTCP = "CALL_RTCP"  # RTCP statistics
     CALL_RTPESTAB = "CALL_RTPESTAB"  # RTP established
+
+
+YAML_EXT = (".yaml", ".yml")

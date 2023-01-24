@@ -1,5 +1,7 @@
 import asyncio
 import logging
+import os
+import signal
 
 from sip2rtsp.version import VERSION
 from sip2rtsp.gi import GstRtspServer, GstRtsp
@@ -21,9 +23,10 @@ launch_string = f'souphttpsrc location=http://10.10.10.10:54321/stream is-live=t
 
 
 class Sip2RtspApp:
-    def __init__(self, aioloop, loop) -> None:
+    def __init__(self, aioloop, loop, config) -> None:
         self.aioloop = aioloop
         self.loop = loop
+        self.config = config
 
         self.server = GstRtspServer.RTSPOnvifServer.new()
         self.factory = GstRtspServer.RTSPOnvifMediaFactory.new()
@@ -52,8 +55,24 @@ class Sip2RtspApp:
         )
         self.bs_ctrl.set_callback(self.event_handler)
 
+    def set_environment_vars(self) -> None:
+        for key, value in self.config.environment_vars.items():
+            os.environ[key] = value
+
+    def set_log_levels(self) -> None:
+        logging.getLogger().setLevel(self.config.logger.default.value.upper())
+        for log, level in self.config.logger.logs.items():
+            logging.getLogger(log).setLevel(level.value.upper())
+
     async def start(self) -> None:
         logger.info(f"Starting SIP2RTSP ({VERSION})")
+        try:
+            self.set_environment_vars()
+            self.set_log_levels()
+        except Exception as e:
+            print(e)
+            os.kill(os.getpid(), signal.SIGTERM)
+
         self.factory.set_launch(launch_string)
 
         await self.bs_ctrl.start()
@@ -75,7 +94,7 @@ class Sip2RtspApp:
             )
 
     def client_play_request(self, client, context: GstRtspServer.RTSPContext):
-        logger.info(
+        logger.debug(
             "Received PLAY request from {remoteip}".format(
                 remoteip=client.get_connection().get_ip()
             )
@@ -125,7 +144,7 @@ class Sip2RtspApp:
 
     def client_closed(self, client):
         logger.debug(
-            "Client connection from {remoteip} closed".format(
+            "RTSP client connection from {remoteip} closed".format(
                 remoteip=client.get_connection().get_ip()
             )
         )
@@ -147,7 +166,7 @@ class Sip2RtspApp:
 
     def client_connected(self, server, client):
         logger.info(
-            "Client connected from {remoteip}".format(
+            "RTSP client connected from {remoteip}".format(
                 remoteip=client.get_connection().get_ip()
             )
         )

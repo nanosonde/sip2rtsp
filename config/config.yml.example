@@ -1,0 +1,11 @@
+# Optional: logger verbosity settings
+logger:
+  # Optional: Default log verbosity (default: shown below)
+  default: info
+  # Optional: Component specific logger overrides
+  logs:
+    sip2rtsp.baresipctrl: debug
+
+# Optional: set environment variables
+environment_vars:
+  EXAMPLE_VAR: value
