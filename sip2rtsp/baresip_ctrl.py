@@ -15,7 +15,7 @@ class BaresipProtocol(asyncio.Protocol):
         logger.info("Baresip control connection established")
 
     def data_received(self, data):
-        # logger.debug("Data received: {data}".format(data=data))
+        logger.debug("Data received: {data}".format(data=data))
         self.baresip_control.handle_data(data)
 
     def connection_lost(self, exc):
@@ -92,7 +92,7 @@ class BaresipControl:
     def _send_command(self, command):
         """Send a command to the Baresip instance"""
         netstring = pynetstring.encode(json.dumps(command).encode())
-        # logger.debug("Data sent: {netstring}".format(netstring=netstring))
+        logger.debug("Data sent: {netstring}".format(netstring=netstring))
         self.transport.write(netstring)
 
     def _receive(self, data):

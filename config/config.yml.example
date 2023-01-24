@@ -4,7 +4,7 @@ logger:
   default: info
   # Optional: Component specific logger overrides
   logs:
-    sip2rtsp.baresipctrl: debug
+    sip2rtsp.baresip_ctrl: debug
 
 # Optional: set environment variables
 environment_vars:

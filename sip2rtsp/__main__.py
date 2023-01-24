@@ -20,6 +20,12 @@ threading.current_thread().name = "sip2rtsp"
 logger = logging.getLogger(__name__)
 
 
+def set_log_levels(config) -> None:
+    logging.getLogger().setLevel(config.logger.default.value.upper())
+    for log, level in config.logger.logs.items():
+        logging.getLogger(log).setLevel(level.value.upper())
+
+
 def init_config() -> Sip2RtspConfig:
     config_file = os.environ.get("CONFIG_FILE", "/config/config.yml")
 
@@ -34,13 +40,13 @@ def init_config() -> Sip2RtspConfig:
 
 async def shutdown(signal, loop, glib_loop, glib_thread):
 
-    logging.info(f"Received exit signal {signal.name}...")
+    logger.info(f"Received exit signal {signal.name}...")
 
     tasks = [t for t in asyncio.all_tasks() if t is not asyncio.current_task()]
 
     [task.cancel() for task in tasks]
 
-    logging.debug(f"Cancelling {len(tasks)} outstanding tasks")
+    logger.debug(f"Cancelling {len(tasks)} outstanding tasks")
     await asyncio.gather(*tasks, return_exceptions=True)
     loop.stop()
 
@@ -57,6 +63,10 @@ async def shutdown(signal, loop, glib_loop, glib_thread):
 
 
 if __name__ == "__main__":
+    logging.basicConfig(
+        format="[%(asctime)s] %(name)-25s %(levelname)-8s: %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
 
     try:
         config = init_config()
@@ -77,7 +87,7 @@ if __name__ == "__main__":
         print("*************************************************************")
         sys.exit(1)
 
-    logging.basicConfig(level=logging.INFO)
+    set_log_levels(config)
 
     loop = asyncio.get_event_loop()
     loop.set_debug(False)

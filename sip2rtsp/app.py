@@ -59,16 +59,10 @@ class Sip2RtspApp:
         for key, value in self.config.environment_vars.items():
             os.environ[key] = value
 
-    def set_log_levels(self) -> None:
-        logging.getLogger().setLevel(self.config.logger.default.value.upper())
-        for log, level in self.config.logger.logs.items():
-            logging.getLogger(log).setLevel(level.value.upper())
-
     async def start(self) -> None:
         logger.info(f"Starting SIP2RTSP ({VERSION})")
         try:
             self.set_environment_vars()
-            self.set_log_levels()
         except Exception as e:
             print(e)
             os.kill(os.getpid(), signal.SIGTERM)
