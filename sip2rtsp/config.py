@@ -44,6 +44,26 @@ class LoggerConfig(Sip2RtspBaseModel):
     )
 
 
+class RtspServerConfig(Sip2RtspBaseModel):
+    launch_string: str = Field(
+        default="", title="GStreamer RTSP server: launch string."
+    )
+    backchannel_launch_string: str = Field(
+        default="", title="GStreamer RTSP server: backchannel launch string."
+    )
+    mount_point: str = Field(default="", title="GStreamer RTSP server: mount point.")
+    latency: int = Field(default=200, title="GStreamer RTSP server: latency.")
+    enable_rtcp: bool = Field(
+        default=False, title="GStreamer RTSP server: enable RTCP."
+    )
+
+
+class SipConfig(Sip2RtspBaseModel):
+    remote_uri: str = Field(
+        default="sip:11@10.10.10.80", title="SIP doorbell: remote URI to dial."
+    )
+
+
 class Sip2RtspConfig(Sip2RtspBaseModel):
     environment_vars: Dict[str, str] = Field(
         default_factory=dict, title="sip2rtsp environment variables."
@@ -51,6 +71,12 @@ class Sip2RtspConfig(Sip2RtspBaseModel):
     logger: LoggerConfig = Field(
         default_factory=LoggerConfig, title="Logging configuration."
     )
+
+    rtsp_server: RtspServerConfig = Field(
+        default_factory=RtspServerConfig, title="GStreamer RTSP server configuration."
+    )
+
+    sip: SipConfig = Field(default_factory=SipConfig, title="SIP configuration.")
 
     @property
     def runtime_config(self) -> Sip2RtspConfig:
