@@ -51,6 +51,9 @@ class RtspServerConfig(Sip2RtspBaseModel):
     backchannel_launch_string: str = Field(
         default="", title="GStreamer RTSP server: backchannel launch string."
     )
+    port: int = Field(
+        default=8554, title="GStreamer RTSP server: TCP port to listen on."
+    )
     mount_point: str = Field(default="", title="GStreamer RTSP server: mount point.")
     latency: int = Field(default=200, title="GStreamer RTSP server: latency.")
     enable_rtcp: bool = Field(
@@ -62,6 +65,13 @@ class SipConfig(Sip2RtspBaseModel):
     remote_uri: str = Field(
         default="sip:11@10.10.10.80", title="SIP doorbell: remote URI to dial."
     )
+
+
+class OnvifConfig(Sip2RtspBaseModel):
+    server_address: str = Field(
+        default="10.10.10.70", title="ONVIF server: address to advertise."
+    )
+    server_port: int = Field(default=10101, title="ONVIF server: port to advertise.")
 
 
 class Sip2RtspConfig(Sip2RtspBaseModel):
@@ -77,6 +87,10 @@ class Sip2RtspConfig(Sip2RtspBaseModel):
     )
 
     sip: SipConfig = Field(default_factory=SipConfig, title="SIP configuration.")
+
+    onvif: OnvifConfig = Field(
+        default_factory=OnvifConfig, title="ONVIF configuration."
+    )
 
     @property
     def runtime_config(self) -> Sip2RtspConfig:
