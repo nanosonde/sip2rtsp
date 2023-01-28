@@ -2,19 +2,17 @@
 import json
 import logging
 from tornado.web import Application, RequestHandler
-import tornado.platform.asyncio
 
 from pyonvifsrv.utils import parseSOAPString
 
 logger = logging.getLogger(__name__)
 
 class OnvifServer:
-    def __init__(self, loop) -> None:
+    def __init__(self, loop, config) -> None:
         self.loop = loop
-        # Initialize the Tornado IOLoop with the asyncio event loop
-        tornado.platform.asyncio.AsyncIOMainLoop().install()
+        self.config = config
 
-    class MainHandler(RequestHandler):
+    class _MainHandler(RequestHandler):
         def get(self):
             logger.info(self.request)
         def post(self):
@@ -29,5 +27,5 @@ class OnvifServer:
 
     async def start_server(self):
         logger.info("ONVIF server starting...")
-        app = Application([(r"/onvif/device_service", self.MainHandler)])
+        app = Application([(r"/onvif/device_service", self._MainHandler)])
         app.listen(10101)

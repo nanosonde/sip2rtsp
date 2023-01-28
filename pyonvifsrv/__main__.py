@@ -15,7 +15,7 @@ if __name__ == "__main__":
 
     loop = asyncio.get_event_loop()
 
-    onvifServer = OnvifServer(loop)
+    onvifServer = OnvifServer(loop, None)
 
     loop.create_task(onvifServer.start_server())
     loop.run_forever()
