@@ -1,5 +1,6 @@
 
 import re
+import json
 import logging
 import time
 import struct
@@ -9,13 +10,31 @@ import hashlib
 import datetime
 import xml.etree.ElementTree as ET
 
-from pprint import pformat, pprint
 from typing import Tuple, Dict
 from collections import defaultdict
 
 logger = logging.getLogger(__name__)
 
-def getNSAndTag(s):
+decapitalize = lambda s: s[:1].lower() + s[1:] if s else ''
+
+def getMethodNameFromBody(body: Dict[str, any]) -> str:
+    if len(body) != 2:
+        raise ValueError(f"Invalid SOAP body: expected only a namespace and method name: {body}")
+    if list(body.keys())[0] != "$NS":
+        raise ValueError(f"Invalid SOAP body: first entry is not a namespace: {body}")
+    return list(body.keys())[1]
+
+def getServiceNameFromOnvifNS(ns: str) -> str:
+    match = re.search(r"http://www.onvif.org/(\S*)/(\S*)/wsdl", ns)
+    if match:
+        if match.group(1) == "ver10":
+            return match.group(2)
+        else: 
+            raise ValueError(f"Invalid ONVIF version in namespace: {ns} - expected ver10")
+    else:
+        return None
+
+def getNSAndTag(s: str) -> Tuple[str, str]:
     match = re.search(r"\{(.*)\}(.*)", s)
     if match:
         if match.group(1) == "":
@@ -25,7 +44,7 @@ def getNSAndTag(s):
     else:
         return None, s
 
-def etree_to_dict(t):
+def etree_to_dict(t: ET.Element) -> Dict[str, any]:
     [ns, tagname] = getNSAndTag(t.tag)
     d = {}
     d["$NS"] = ns
@@ -51,9 +70,26 @@ def etree_to_dict(t):
             d[tagname] = text
     return d
 
-def parseSOAPString(rawXml: str) -> Tuple[Dict[str, any], str]:
+def parseSOAPString(rawXml: str) -> Dict[str, any]:
     
     root = ET.fromstring(rawXml)
+
+    # There might be no SOAP header
+    headerDict = None
+
+    # Envelope element is already the root element
+    header_element = root.find('./{http://www.w3.org/2003/05/soap-envelope}Header')
+    if  header_element is not None:
+        if len(header_element) > 1:
+            raise ValueError('Invalid ONVIF SOAP envelope: more than one header element found')
+
+        # For debugging
+        # for elem in header_element[0].iter():
+        #     tag = elem.tag
+        #     [ns, tagname] = getNSAndTag(tag)
+        #     logger.info(f"elem: ns: {ns} tag: {tagname} - attrib: {elem.attrib}")
+        if len(header_element) > 0:
+            headerDict = etree_to_dict(header_element[0])
 
     # Envelope element is already the root element
     body_element = root.find('./{http://www.w3.org/2003/05/soap-envelope}Body')
@@ -61,22 +97,24 @@ def parseSOAPString(rawXml: str) -> Tuple[Dict[str, any], str]:
         raise ValueError('Invalid ONVIF SOAP envelope: no Body element found')
 
     if len(body_element) > 1:
-        raise ValueError('Invalid ONVIF SOAP envelope: more than element found in Body')
+        raise ValueError('Invalid ONVIF SOAP envelope: more than one body element found')
 
-    # Use the first and only element in the body
-    first_element = body_element[0]
-    if first_element is None:
+    # Use the single body element
+    if body_element[0] is None:
         raise ValueError('Invalid ONVIF SOAP envelope: no valid element found in Body')
 
-    for elem in first_element.iter():
-        tag = elem.tag
-        [ns, tagname] = getNSAndTag(tag)
-        logger.info(f"elem: ns: {ns} tag: {tagname} - attrib: {elem.attrib}")
+    # For debugging
+    # for elem in body_element[0].iter():
+    #     tag = elem.tag
+    #     [ns, tagname] = getNSAndTag(tag)
+    #     logger.info(f"elem: ns: {ns} tag: {tagname} - attrib: {elem.attrib}")
 
-    myDict = etree_to_dict(first_element)
-    return [myDict, rawXml]
+    bodyDict = etree_to_dict(body_element[0])
 
-def envelopeHeader(requestHeader):
+    soapDict = {'header': headerDict, 'body': bodyDict}
+    return soapDict
+
+def envelopeHeader(requestHeader: dict) -> str:
     header = '''
     <?xml version="1.0" encoding="UTF-8"?>
         <SOAP-ENV:Envelope 
@@ -114,19 +152,19 @@ def envelopeHeader(requestHeader):
     if requestHeader is not None:
         header += '<SOAP-ENV:Header>'
 
-        if (requestHeader.messageID is not None):
+        if "messageID" in requestHeader:
             header += '<wsa5:MessageID>' + requestHeader.messageID + '</wsa5:MessageID>'
 
-        if requestHeader.replyTo is not None:
-            header += '<wsa5:ReplyTo SOAP-ENV:mustUnderstand="1">' + '<wsa5:Address>' + requestHeader.replyTo.address + '</wsa5:Address>' + '</wsa5:ReplyTo>'
+        if "replyTo" in requestHeader:
+            header += '<wsa5:ReplyTo SOAP-ENV:mustUnderstand="1">' + '<wsa5:Address>' + requestHeader["replyTo"]["address"] + '</wsa5:Address>' + '</wsa5:ReplyTo>'
     
-        if requestHeader.to is not None:
+        if "to" in requestHeader:
             header += "<wsa5:To SOAP-ENV:mustUnderstand=\"1\">" + requestHeader.to._ + "</wsa5:To>"
 
-        if requestHeader.action is not None:
+        if "action" in requestHeader:
             header += "<wsa5:Action SOAP-ENV:mustUnderstand=\"1\">" + requestHeader.action._.replace("Request$", "Response") + "</wsa5:Action>"
         
-        if requestHeader.security is not None:  
+        if "security" in requestHeader:  
             header += '<wsse:Security>'
             + '<wsse:UsernameToken>' 
             + "<wsse:Username>" + requestHeader.security.usernameToken.username + "</wsse:Username>"
@@ -142,10 +180,10 @@ def envelopeHeader(requestHeader):
 
     return header
 
-def envelopeFooter():
+def envelopeFooter() -> str:
     return '</SOAP-ENV:Body>' + '</SOAP-ENV:Envelope>'
 
-def passwordDigest(self):
+def passwordDigest(self) -> dict:
     timestamp = (datetime.datetime.fromtimestamp((self.timeShift or 0) + time.time())).isoformat()
     nonce = bytearray(16)
     nonce.write(struct.pack('<L', random.randint(0, 0xFFFFFFFF)), 0)
