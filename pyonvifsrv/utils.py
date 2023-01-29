@@ -27,10 +27,10 @@ def getMethodNameFromBody(body: Dict[str, any]) -> str:
 def getServiceNameFromOnvifNS(ns: str) -> str:
     match = re.search(r"http://www.onvif.org/(\S*)/(\S*)/wsdl", ns)
     if match:
-        if match.group(1) == "ver10":
+        if match.group(1) == "ver10" or match.group(1) == "ver20":
             return match.group(2)
         else: 
-            raise ValueError(f"Invalid ONVIF version in namespace: {ns} - expected ver10")
+            raise ValueError(f"Invalid ONVIF version in namespace: {ns} - expected ver10 or ver20")
     else:
         return None
 
@@ -115,8 +115,7 @@ def parseSOAPString(rawXml: str) -> Dict[str, any]:
     return soapDict
 
 def envelopeHeader(requestHeader: dict) -> str:
-    header = '''
-    <?xml version="1.0" encoding="UTF-8"?>
+    header = '''<?xml version="1.0" encoding="UTF-8"?>
         <SOAP-ENV:Envelope 
             xmlns:SOAP-ENV="http://www.w3.org/2003/05/soap-envelope" 
             xmlns:SOAP-ENC="http://www.w3.org/2003/05/soap-encoding" 
@@ -152,28 +151,33 @@ def envelopeHeader(requestHeader: dict) -> str:
     if requestHeader is not None:
         header += '<SOAP-ENV:Header>'
 
-        if "messageID" in requestHeader:
+        if "MessageID" in requestHeader:
             header += '<wsa5:MessageID>' + requestHeader.messageID + '</wsa5:MessageID>'
 
-        if "replyTo" in requestHeader:
+        if "ReplyTo" in requestHeader:
             header += '<wsa5:ReplyTo SOAP-ENV:mustUnderstand="1">' + '<wsa5:Address>' + requestHeader["replyTo"]["address"] + '</wsa5:Address>' + '</wsa5:ReplyTo>'
     
-        if "to" in requestHeader:
+        if "To" in requestHeader:
             header += "<wsa5:To SOAP-ENV:mustUnderstand=\"1\">" + requestHeader.to._ + "</wsa5:To>"
 
-        if "action" in requestHeader:
+        if "Action" in requestHeader:
             header += "<wsa5:Action SOAP-ENV:mustUnderstand=\"1\">" + requestHeader.action._.replace("Request$", "Response") + "</wsa5:Action>"
         
-        if "security" in requestHeader:  
-            header += '<wsse:Security>'
-            + '<wsse:UsernameToken>' 
-            + "<wsse:Username>" + requestHeader.security.usernameToken.username + "</wsse:Username>"
-            + "<wsse:Password Type=\"http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordDigest\">" + requestHeader.security.usernameToken.password._ + "</wsse:Password>"
-            + "<wsse:Nonce EncodingType=\"http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-soap-message-security-1.0#Base64Binary\">" + requestHeader.security.usernameToken.nonce._ + "</wsse:Nonce>"
-            + "<wsse:Created xmlns=\"http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd\">" + requestHeader.security.usernameToken.created._ + "</wsse:Created>"
-            + '</wsse:UsernameToken>'
-            + '</wsse:Security>'
-        
+        if "Security" in requestHeader:  
+            username = requestHeader["Security"]["UsernameToken"]["Username"]
+            password = requestHeader["Security"]["UsernameToken"]["Password"]["#text"]
+            nonce = requestHeader["Security"]["UsernameToken"]["Nonce"]["#text"]
+            created = requestHeader["Security"]["UsernameToken"]["Created"]
+            header += '''
+            <wsse:Security>
+               <wsse:UsernameToken>
+                <wsse:Username>{username}</wsse:Username>
+                <wsse:Password Type="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordDigest">{password}</wsse:Password>
+                <wsse:Nonce EncodingType="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-soap-message-security-1.0#Base64Binary">{nonce}</wsse:Nonce>
+                <wsse:Created xmlns="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd">{created}</wsse:Created>
+               </wsse:UsernameToken>
+            </wsse:Security>
+            '''.format(username=username, password=password, nonce=nonce, created=created)
         header += '</SOAP-ENV:Header>'
 
     header += '<SOAP-ENV:Body>'
