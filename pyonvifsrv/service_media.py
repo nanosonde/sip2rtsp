@@ -234,3 +234,16 @@ class MediaService:
                 </trt:Profile>
             </trt:GetProfileResponse>
         '''
+
+    def setVideoEncoderConfiguration(self, data):
+        return '''
+            <trt:SetVideoEncoderConfigurationResponse></trt:SetVideoEncoderConfigurationResponse>
+        '''
+
+    def getAudioSources(self, data):
+        return '''
+            <trt:GetAudioSourcesResponse>
+                <trt:AudioSources token="src0">
+                </trt:AudioSources>
+            </trt:GetAudioSourcesResponse>
+        '''
