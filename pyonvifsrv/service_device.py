@@ -1,11 +1,14 @@
 import logging
 from pyonvifsrv.context import Context
+from pyonvifsrv.service_base import ServiceBase
 
 logger = logging.getLogger(__name__)
 
-class DeviceService:
+class DeviceService(ServiceBase):
+    serviceName = "device"
+
     def __init__(self, context: Context):
-        self.context = context
+        super().__init__(context)
 
     def getSystemDateAndTime(self, data):
         return '''
@@ -90,7 +93,7 @@ class DeviceService:
             <tds:GetCapabilitiesResponse>
                 <tds:Capabilities>
                     <tt:Device>
-                        <tt:XAddr>{serviceAddress}</tt:XAddr>
+                        <tt:XAddr>{deviceServiceAddress}</tt:XAddr>
                         <tt:Network>
                             <tt:IPFilter>false</tt:IPFilter>
                             <tt:ZeroConfiguration>true</tt:ZeroConfiguration>
@@ -125,16 +128,16 @@ class DeviceService:
                         </tt:Security>
                     </tt:Device>
                     <tt:Events>
-                        <tt:XAddr>{serviceAddress}</tt:XAddr>
+                        <tt:XAddr>{eventsServiceAddress}</tt:XAddr>
                         <tt:WSSubscriptionPolicySupport>false</tt:WSSubscriptionPolicySupport>
                         <tt:WSPullPointSupport>true</tt:WSPullPointSupport>
                         <tt:WSPausableSubscriptionManagerInterfaceSupport>false</tt:WSPausableSubscriptionManagerInterfaceSupport>
                     </tt:Events>
                     <tt:Imaging>
-                        <tt:XAddr>{serviceAddress}</tt:XAddr>
+                        <tt:XAddr>{imagingServiceAddress}</tt:XAddr>
                     </tt:Imaging>
                     <tt:Media>
-                        <tt:XAddr>{serviceAddress}</tt:XAddr>
+                        <tt:XAddr>{mediaServiceAddress}</tt:XAddr>
                         <tt:StreamingCapabilities>
                             <tt:RTPMulticast>false</tt:RTPMulticast>
                             <tt:RTP_TCP>true</tt:RTP_TCP>
@@ -142,11 +145,11 @@ class DeviceService:
                         </tt:StreamingCapabilities>
                     </tt:Media>
                     <tt:PTZ>
-                        <tt:XAddr>{serviceAddress}</tt:XAddr>
+                        <tt:XAddr>{ptzServiceAddress}</tt:XAddr>
                     </tt:PTZ>
                     <tt:Extension>
                         <tt:DeviceIO>
-                            <tt:XAddr>{serviceAddress}</tt:XAddr>
+                            <tt:XAddr>{deviceIoServiceAddress}</tt:XAddr>
                             <tt:VideoSources>1</tt:VideoSources>
                             <tt:VideoOutputs>0</tt:VideoOutputs>
                             <tt:AudioSources>1</tt:AudioSources>
@@ -156,14 +159,19 @@ class DeviceService:
                     </tt:Extension>
                 </tds:Capabilities>
             </tds:GetCapabilitiesResponse>
-        '''.format(serviceAddress=self.context.serviceAddress)
+        '''.format(deviceServiceAddress=self.context.serviceAddresses["device"],
+                   eventsServiceAddress=self.context.serviceAddresses["events"],
+                   imagingServiceAddress=self.context.serviceAddresses["imaging"],
+                   mediaServiceAddress=self.context.serviceAddresses["media"],
+                   ptzServiceAddress=self.context.serviceAddresses["ptz"],
+                   deviceIoServiceAddress=self.context.serviceAddresses["deviceio"])
 
     def getServices(self, data):
         return '''
             <tds:GetServicesResponse>
                 <tds:Service>
                     <tds:Namespace>http://www.onvif.org/ver10/device/wsdl</tds:Namespace>
-                    <tds:XAddr>{serviceAddress}</tds:XAddr>
+                    <tds:XAddr>{deviceServiceAddress}</tds:XAddr>
                     <tds:Version>
                         <tt:Major>2</tt:Major>
                         <tt:Minor>42</tt:Minor>
@@ -171,7 +179,7 @@ class DeviceService:
                 </tds:Service>
                 <tds:Service>
                     <tds:Namespace>http://www.onvif.org/ver10/media/wsdl</tds:Namespace>
-                    <tds:XAddr>{serviceAddress}</tds:XAddr>
+                    <tds:XAddr>{mediaServiceAddress}</tds:XAddr>
                     <tds:Version>
                         <tt:Major>2</tt:Major>
                         <tt:Minor>41</tt:Minor>
@@ -179,7 +187,7 @@ class DeviceService:
                 </tds:Service>
                 <tds:Service>
                     <tds:Namespace>http://www.onvif.org/ver10/events/wsdl</tds:Namespace>
-                    <tds:XAddr>{serviceAddress}</tds:XAddr>
+                    <tds:XAddr>{eventsServiceAddress}</tds:XAddr>
                     <tds:Version>
                         <tt:Major>2</tt:Major>
                         <tt:Minor>40</tt:Minor>
@@ -187,7 +195,7 @@ class DeviceService:
                 </tds:Service>
                 <tds:Service>
                     <tds:Namespace>http://www.onvif.org/ver10/deviceIO/wsdl</tds:Namespace>
-                    <tds:XAddr>{serviceAddress}</tds:XAddr>
+                    <tds:XAddr>{deviceIoServiceAddress}</tds:XAddr>
                     <tds:Version>
                         <tt:Major>2</tt:Major>
                         <tt:Minor>20</tt:Minor>
@@ -195,7 +203,7 @@ class DeviceService:
                 </tds:Service>
                 <tds:Service>
                     <tds:Namespace>http://www.onvif.org/ver20/ptz/wsdl</tds:Namespace>
-                    <tds:XAddr>{serviceAddress}</tds:XAddr>
+                    <tds:XAddr>{ptzServiceAddress}</tds:XAddr>
                     <tds:Version>
                         <tt:Major>2</tt:Major>
                         <tt:Minor>41</tt:Minor>
@@ -203,14 +211,19 @@ class DeviceService:
                 </tds:Service>
                 <tds:Service>
                     <tds:Namespace>http://www.onvif.org/ver20/imaging/wsdl</tds:Namespace>
-                    <tds:XAddr>{serviceAddress}</tds:XAddr>
+                    <tds:XAddr>{imagingServiceAddress}</tds:XAddr>
                     <tds:Version>
                         <tt:Major>2</tt:Major>
                         <tt:Minor>30</tt:Minor>
                     </tds:Version>
                 </tds:Service>
             </tds:GetServicesResponse>		
-        '''.format(serviceAddress=self.context.serviceAddress)
+        '''.format(deviceServiceAddress=self.context.serviceAddresses["device"],
+                   eventsServiceAddress=self.context.serviceAddresses["events"],
+                   imagingServiceAddress=self.context.serviceAddresses["imaging"],
+                   mediaServiceAddress=self.context.serviceAddresses["media"],
+                   ptzServiceAddress=self.context.serviceAddresses["ptz"],
+                   deviceIoServiceAddress=self.context.serviceAddresses["deviceio"])
 
     def getHostname(self, data):
         hostname = "IPNC-RDK"

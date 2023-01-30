@@ -19,20 +19,20 @@ class OnvifServer:
         self.loop = loop
         self.config = config
         self.context = Context(config)
-        self.services = { 
-            "device": DeviceService(self.context),
-            "media": MediaService(self.context),
-            "imaging": ImagingService(self.context),
-            "events": EventsService(self.context),
-            "ptz": PtzService(self.context),
-        }
+        self.services = [
+            DeviceService(self.context),
+            MediaService(self.context),
+            ImagingService(self.context),
+            EventsService(self.context),
+            PtzService(self.context),
+        ]
 
     class _MainHandler(RequestHandler):
         def initialize(self, services):
             self.services = services
         def get(self):
             logger.info(self.request)
-        def post(self):
+        def post(self, serviceName):
             reqBody = self.request.body.decode('utf-8')
             #logger.debug(f"HTTP request body: {httpBody}")
 
@@ -41,11 +41,24 @@ class OnvifServer:
             reqData = parseSOAPString(reqBody)
             logging.info(f"data: \n{json.dumps(reqData, indent=4)}")
 
-            serviceName = getServiceNameFromOnvifNS(reqData["body"]["$NS"])
+            #serviceName = getServiceNameFromOnvifNS(reqData["body"]["$NS"])
             logging.info(f"serviceName: {serviceName}")
 
             responseBody = ""
-            serviceInstance = self.services[serviceName]
+
+            serviceInstance = None
+            for service in self.services:
+                if service.serviceName == serviceName:
+                    serviceInstance = service
+                    break
+
+            if serviceInstance is None:
+                logger.error(f"Service {serviceName} not found")
+                self.set_status(500)
+                self.finish()
+                return
+
+            #serviceInstance = self.services[serviceName]
             methodName = decapitalize(getMethodNameFromBody(reqData["body"]))
             if methodName:
                 try:
@@ -75,5 +88,6 @@ class OnvifServer:
 
     async def start_server(self):
         logger.info("ONVIF server starting...")
-        app = Application([(r"/onvif/services", self._MainHandler, dict(services=self.services))])
+
+        app = Application([(r"/onvif/service/([a-z]+)", self._MainHandler, dict(services=self.services))])
         app.listen(10101)

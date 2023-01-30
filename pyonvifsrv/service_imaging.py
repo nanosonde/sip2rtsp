@@ -1,11 +1,14 @@
 import logging
 from pyonvifsrv.context import Context
+from pyonvifsrv.service_base import ServiceBase
 
 logger = logging.getLogger(__name__)
 
-class ImagingService:
+class ImagingService(ServiceBase):
+    serviceName = "imaging"
+
     def __init__(self, context: Context):
-        self.context = context
+        super().__init__(context)
 
     def getImagingSettings(self, data):
         return '''

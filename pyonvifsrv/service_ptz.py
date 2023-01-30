@@ -1,11 +1,14 @@
 import logging
 from pyonvifsrv.context import Context
+from pyonvifsrv.service_base import ServiceBase
 
 logger = logging.getLogger(__name__)
 
-class PtzService:
+class PtzService(ServiceBase):
+    serviceName = "ptz"
+
     def __init__(self, context: Context):
-        self.context = context
+        super().__init__(context)
 
     def getNodes(self, data):
         return '''

@@ -3,6 +3,7 @@ import logging
 import random
 import datetime
 from pyonvifsrv.context import Context
+from pyonvifsrv.service_base import ServiceBase
 
 logger = logging.getLogger(__name__)
 
@@ -29,29 +30,29 @@ def getDurationAsSeconds(duration):
     return (years * 365 * 24 * 60 * 60) + (months * 30 * 24 * 60 * 60) + (days * 24 * 60 * 60) + (hours * 60 * 60) + (minutes * 60) + seconds
 
 class Message:
-	def __init__(self, type: str, timestamp: datetime, payload: any):
-		self.type = type
-		self.timestamp = timestamp
-		self.payload = payload
+    def __init__(self, type: str, timestamp: datetime, payload: any):
+        self.type = type
+        self.timestamp = timestamp
+        self.payload = payload
 
-	def toXml(self) -> str:
-		return '''
-			<wsnt:NotificationMessage>
-				<wsnt:Topic Dialect="http://www.onvif.org/ver10/tev/topicExpression/ConcreteSet">{self.type}</wsnt:Topic>
-				<wsnt:Message>
-					<tt:Message xmlns:tt="http://www.onvif.org/ver10/schema">
-						<tt:Source>
-							<tt:SimpleItem Name="device" Value="{self.payload.device}" />
-							<tt:SimpleItem Name="type" Value="{self.payload.type}" />
-							<tt:SimpleItem Name="timestamp" Value="{self.timestamp.toISOString()}" />
-						</tt:Source>
-						<tt:Data>
-							<tt:SimpleItem Name="data" Value="{self.payload.data}" />
-						</tt:Data>
-					</tt:Message>
-				</wsnt:Message>
-			</wsnt:NotificationMessage>
-		'''
+    def toXml(self) -> str:
+        return '''
+            <wsnt:NotificationMessage>
+                <wsnt:Topic Dialect="http://www.onvif.org/ver10/tev/topicExpression/ConcreteSet">{self.type}</wsnt:Topic>
+                <wsnt:Message>
+                    <tt:Message xmlns:tt="http://www.onvif.org/ver10/schema">
+                        <tt:Source>
+                            <tt:SimpleItem Name="device" Value="{self.payload.device}" />
+                            <tt:SimpleItem Name="type" Value="{self.payload.type}" />
+                            <tt:SimpleItem Name="timestamp" Value="{self.timestamp.toISOString()}" />
+                        </tt:Source>
+                        <tt:Data>
+                            <tt:SimpleItem Name="data" Value="{self.payload.data}" />
+                        </tt:Data>
+                    </tt:Message>
+                </wsnt:Message>
+            </wsnt:NotificationMessage>
+        '''
 
 class PullPointSubscription():
     def __init__(self, id: str, expirationTime: datetime):
@@ -62,9 +63,12 @@ class PullPointSubscription():
     def addMessage(self, message: Message):
         self.messages.append(message)
 
-class EventsService:
+class EventsService(ServiceBase):
+    serviceName = "events"
+
     def __init__(self, context: Context):
-        self.context = context
+        super().__init__(context)
+
         self.subscriptions = {}
 
     def createPullPointSubscription(self, data):
@@ -85,13 +89,13 @@ class EventsService:
         self.subscriptions[subscriptionId] = subscription
 
         return '''
-			<tev:CreatePullPointSubscriptionResponse>
-				<tev:SubscriptionReference>
-					<wsa5:Address>http://{listenIp}:{listenPort}/onvif/pullpoint/{subscriptionId}</wsa5:Address>
-				</tev:SubscriptionReference>
-				<wsnt:CurrentTime>{currentTime}</wsnt:CurrentTime>
-				<wsnt:TerminationTime>{expirationTime}</wsnt:TerminationTime>
-			</tev:CreatePullPointSubscriptionResponse>		
+            <tev:CreatePullPointSubscriptionResponse>
+                <tev:SubscriptionReference>
+                    <wsa5:Address>http://{listenIp}:{listenPort}/onvif/pullpoint/{subscriptionId}</wsa5:Address>
+                </tev:SubscriptionReference>
+                <wsnt:CurrentTime>{currentTime}</wsnt:CurrentTime>
+                <wsnt:TerminationTime>{expirationTime}</wsnt:TerminationTime>
+            </tev:CreatePullPointSubscriptionResponse>		
         '''.format(listenIp=listenIp, listenPort=listenPort, subscriptionId=subscriptionId, currentTime=currentTime.isoformat(), expirationTime=expirationTime.isoformat())
 
     def pullMessages(self, data):
@@ -113,11 +117,11 @@ class EventsService:
         # sleep(timeoutInSeconds)
 
         return '''
-			<tev:PullMessagesResponse>
-				<tev:CurrentTime>{currentTime}</tev:CurrentTime>
-				<tev:TerminationTime>{terminationTime}</tev:TerminationTime>
-				{messagesXml}
-			</tev:PullMessagesResponse>
+            <tev:PullMessagesResponse>
+                <tev:CurrentTime>{currentTime}</tev:CurrentTime>
+                <tev:TerminationTime>{terminationTime}</tev:TerminationTime>
+                {messagesXml}
+            </tev:PullMessagesResponse>
         '''.format(currentTime=currentTime.isoformat(), terminationTime=terminationTime.isoformat(), messagesXml=messagesXml)
 
     def renew(self, data):
@@ -125,10 +129,10 @@ class EventsService:
         currentTime: datetime = ""
 
         return '''
-			<wsnt:RenewResponse>
-				<wsnt:TerminationTime>{terminationTime}</wsnt:TerminationTime>
-				<wsnt:CurrentTime>{currentTime}</wsnt:CurrentTime>
-			</wsnt:RenewResponse>
+            <wsnt:RenewResponse>
+                <wsnt:TerminationTime>{terminationTime}</wsnt:TerminationTime>
+                <wsnt:CurrentTime>{currentTime}</wsnt:CurrentTime>
+            </wsnt:RenewResponse>
         '''.format(terminationTime=terminationTime.isoformat(), currentTime=currentTime.isoformat())
 
     def unsubscribe(self, data):
@@ -138,73 +142,73 @@ class EventsService:
 
     def getEventProperties(self, data):
         return '''
-			<tev:GetEventPropertiesResponse>
-				<tev:TopicNamespaceLocation>http://www.onvif.org/onvif/ver10/topics/topicns.xml</tev:TopicNamespaceLocation>
-				<wsnt:FixedTopicSet>true</wsnt:FixedTopicSet>
-				<wstop:TopicSet>
-					<tns1:VideoSource wstop:topic="false">
-						<MotionAlarm wstop:topic="true">
-							<tt:MessageDescription IsProperty="true">
-								<tt:Source>
-									<tt:SimpleItemDescription Name="Source"	Type="tt:ReferenceToken"/>
-								</tt:Source>
-								<tt:Data>
-									<tt:SimpleItemDescription Name="State" Type="xsd:boolean"/>
-								</tt:Data>
-							</tt:MessageDescription>
-						</MotionAlarm>
-						<ImageTooDark wstop:topic="false">
-							<ImagingService wstop:topic="true">
-								<tt:MessageDescription IsProperty="true">
-									<tt:Source>
-										<tt:SimpleItemDescription Name="Source" Type="tt:ReferenceToken"/>
-									</tt:Source>
-									<tt:Data>
-										<tt:SimpleItemDescription Name="State" Type="xsd:boolean"/>
-									</tt:Data>
-								</tt:MessageDescription>
-							</ImagingService>
-						</ImageTooDark>
-					</tns1:VideoSource>
-					<tns1:Media wstop:topic="false">
-						<ProfileChanged wstop:topic="true">
-							<tt:MessageDescription IsProperty="false">
-								<tt:Data>
-									<tt:SimpleItemDescription Name="Token" Type="tt:ReferenceToken"/>
-								</tt:Data>
-							</tt:MessageDescription>
-						</ProfileChanged>
-						<ConfigurationChanged wstop:topic="true">
-							<tt:MessageDescription IsProperty="false">
-								<tt:Source>
-									<tt:SimpleItemDescription Name="Token" Type="tt:ReferenceToken"/>
-								</tt:Source>
-								<tt:Data>
-									<tt:SimpleItemDescription Name="Type" Type="xsd:string"/>
-								</tt:Data>
-							</tt:MessageDescription>
-						</ConfigurationChanged>
-					</tns1:Media>
-					<tns1:RuleEngine wstop:topic="true">
-						<CellMotionDetector wstop:topic="true">
-							<Motion wstop:topic="true">
-								<tt:MessageDescription IsProperty="true">
-									<tt:Source>
-										<tt:SimpleItemDescription Name="VideoSourceConfigurationToken" Type="tt:ReferenceToken"/>
-										<tt:SimpleItemDescription Name="VideoAnalyticsConfigurationToken" Type="tt:ReferenceToken"/>
-										<tt:SimpleItemDescription Name="Rule" Type="xsd:string"/>
-									</tt:Source>
-									<tt:Data>
-										<tt:SimpleItemDescription Name="IsMotion" Type="xsd:boolean"/>
-									</tt:Data>
-								</tt:MessageDescription>
-							</Motion>
-						</CellMotionDetector>
-					</tns1:RuleEngine>
-				</wstop:TopicSet>
-				<wsnt:TopicExpressionDialect>http://www.onvif.org/ver10/tev/topicExpression/ConcreteSet</wsnt:TopicExpressionDialect>
-				<wsnt:TopicExpressionDialect>http://docs.oasis-open.org/wsn/t-1/TopicExpression/Concrete</wsnt:TopicExpressionDialect>
-				<tev:MessageContentFilterDialect>http://www.onvif.org/ver10/tev/messageContentFilter/ItemFilter</tev:MessageContentFilterDialect>
-				<tev:MessageContentSchemaLocation>http://www.onvif.org/onvif/ver10/schema/onvif.xsd</tev:MessageContentSchemaLocation>
-			</tev:GetEventPropertiesResponse>
+            <tev:GetEventPropertiesResponse>
+                <tev:TopicNamespaceLocation>http://www.onvif.org/onvif/ver10/topics/topicns.xml</tev:TopicNamespaceLocation>
+                <wsnt:FixedTopicSet>true</wsnt:FixedTopicSet>
+                <wstop:TopicSet>
+                    <tns1:VideoSource wstop:topic="false">
+                        <MotionAlarm wstop:topic="true">
+                            <tt:MessageDescription IsProperty="true">
+                                <tt:Source>
+                                    <tt:SimpleItemDescription Name="Source"	Type="tt:ReferenceToken"/>
+                                </tt:Source>
+                                <tt:Data>
+                                    <tt:SimpleItemDescription Name="State" Type="xsd:boolean"/>
+                                </tt:Data>
+                            </tt:MessageDescription>
+                        </MotionAlarm>
+                        <ImageTooDark wstop:topic="false">
+                            <ImagingService wstop:topic="true">
+                                <tt:MessageDescription IsProperty="true">
+                                    <tt:Source>
+                                        <tt:SimpleItemDescription Name="Source" Type="tt:ReferenceToken"/>
+                                    </tt:Source>
+                                    <tt:Data>
+                                        <tt:SimpleItemDescription Name="State" Type="xsd:boolean"/>
+                                    </tt:Data>
+                                </tt:MessageDescription>
+                            </ImagingService>
+                        </ImageTooDark>
+                    </tns1:VideoSource>
+                    <tns1:Media wstop:topic="false">
+                        <ProfileChanged wstop:topic="true">
+                            <tt:MessageDescription IsProperty="false">
+                                <tt:Data>
+                                    <tt:SimpleItemDescription Name="Token" Type="tt:ReferenceToken"/>
+                                </tt:Data>
+                            </tt:MessageDescription>
+                        </ProfileChanged>
+                        <ConfigurationChanged wstop:topic="true">
+                            <tt:MessageDescription IsProperty="false">
+                                <tt:Source>
+                                    <tt:SimpleItemDescription Name="Token" Type="tt:ReferenceToken"/>
+                                </tt:Source>
+                                <tt:Data>
+                                    <tt:SimpleItemDescription Name="Type" Type="xsd:string"/>
+                                </tt:Data>
+                            </tt:MessageDescription>
+                        </ConfigurationChanged>
+                    </tns1:Media>
+                    <tns1:RuleEngine wstop:topic="true">
+                        <CellMotionDetector wstop:topic="true">
+                            <Motion wstop:topic="true">
+                                <tt:MessageDescription IsProperty="true">
+                                    <tt:Source>
+                                        <tt:SimpleItemDescription Name="VideoSourceConfigurationToken" Type="tt:ReferenceToken"/>
+                                        <tt:SimpleItemDescription Name="VideoAnalyticsConfigurationToken" Type="tt:ReferenceToken"/>
+                                        <tt:SimpleItemDescription Name="Rule" Type="xsd:string"/>
+                                    </tt:Source>
+                                    <tt:Data>
+                                        <tt:SimpleItemDescription Name="IsMotion" Type="xsd:boolean"/>
+                                    </tt:Data>
+                                </tt:MessageDescription>
+                            </Motion>
+                        </CellMotionDetector>
+                    </tns1:RuleEngine>
+                </wstop:TopicSet>
+                <wsnt:TopicExpressionDialect>http://www.onvif.org/ver10/tev/topicExpression/ConcreteSet</wsnt:TopicExpressionDialect>
+                <wsnt:TopicExpressionDialect>http://docs.oasis-open.org/wsn/t-1/TopicExpression/Concrete</wsnt:TopicExpressionDialect>
+                <tev:MessageContentFilterDialect>http://www.onvif.org/ver10/tev/messageContentFilter/ItemFilter</tev:MessageContentFilterDialect>
+                <tev:MessageContentSchemaLocation>http://www.onvif.org/onvif/ver10/schema/onvif.xsd</tev:MessageContentSchemaLocation>
+            </tev:GetEventPropertiesResponse>
         '''
