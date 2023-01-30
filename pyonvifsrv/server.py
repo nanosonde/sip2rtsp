@@ -1,9 +1,6 @@
 
-import json
 import logging
 from tornado.web import Application, RequestHandler
-
-from pyonvifsrv.utils import parseSOAPString, getServiceNameFromOnvifNS, getMethodNameFromBody, decapitalize, envelopeHeader, envelopeFooter
 
 from pyonvifsrv.context import Context
 from pyonvifsrv.service_device import DeviceService
@@ -28,66 +25,18 @@ class OnvifServer:
         ]
 
     class _MainHandler(RequestHandler):
-        def initialize(self, services):
-            self.services = services
         def get(self):
             logger.info(self.request)
-        def post(self, serviceName):
-            reqBody = self.request.body.decode('utf-8')
-            #logger.debug(f"HTTP request body: {httpBody}")
-
-            # Parse the SOAP XML and create a dictionary which contains the
-            # SOAP header and body
-            reqData = parseSOAPString(reqBody)
-            logging.info(f"data: \n{json.dumps(reqData, indent=4)}")
-
-            #serviceName = getServiceNameFromOnvifNS(reqData["body"]["$NS"])
-            logging.info(f"serviceName: {serviceName}")
-
-            responseBody = ""
-
-            serviceInstance = None
-            for service in self.services:
-                if service.serviceName == serviceName:
-                    serviceInstance = service
-                    break
-
-            if serviceInstance is None:
-                logger.error(f"Service {serviceName} not found")
-                self.set_status(500)
-                self.finish()
-                return
-
-            #serviceInstance = self.services[serviceName]
-            methodName = decapitalize(getMethodNameFromBody(reqData["body"]))
-            if methodName:
-                try:
-                    method = getattr(serviceInstance, methodName)
-                except AttributeError:
-                    logger.error(f"Method {methodName} not found in service {serviceName}")
-                    self.set_status(500)
-                    self.finish()
-                    return
-                responseBody = method(reqData)
-            else:
-                logger.error("No method name found in request data: {data}".format(data=reqData["body"]))
-                self.set_status(500)
-                self.finish()
-                return
-
-            if responseBody != "":
-                self.set_header("Content-Type", "application/soap+xml; charset=utf-8")
-                content = envelopeHeader(reqData["header"]) + responseBody + envelopeFooter();
-                #logger.debug(f"HTTP response body: {content}")
-                self.write(content)
-                self.finish()
-            else:
-                logger.error("No response body was generated")
-                self.set_status(500)
-                self.finish()
+            self.write("Hello, world")
+            self.finish()
 
     async def start_server(self):
         logger.info("ONVIF server starting...")
 
-        app = Application([(r"/onvif/service/([a-z]+)", self._MainHandler, dict(services=self.services))])
+        handlers = [(r"/", self._MainHandler)]
+
+        for service in self.services:
+            handlers.append(service.getRequestHandler())
+
+        app = Application(handlers)
         app.listen(10101)
