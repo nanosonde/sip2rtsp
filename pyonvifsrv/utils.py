@@ -75,21 +75,13 @@ def parseSOAPString(rawXml: str) -> Dict[str, any]:
     root = ET.fromstring(rawXml)
 
     # There might be no SOAP header
-    headerDict = None
+    headerDict: dict = {}
 
     # Envelope element is already the root element
     header_element = root.find('./{http://www.w3.org/2003/05/soap-envelope}Header')
     if  header_element is not None:
-        if len(header_element) > 1:
-            raise ValueError('Invalid ONVIF SOAP envelope: more than one header element found')
-
-        # For debugging
-        # for elem in header_element[0].iter():
-        #     tag = elem.tag
-        #     [ns, tagname] = getNSAndTag(tag)
-        #     logger.info(f"elem: ns: {ns} tag: {tagname} - attrib: {elem.attrib}")
-        if len(header_element) > 0:
-            headerDict = etree_to_dict(header_element[0])
+        for elem in header_element:
+            headerDict.update(etree_to_dict(elem))
 
     # Envelope element is already the root element
     body_element = root.find('./{http://www.w3.org/2003/05/soap-envelope}Body')
@@ -110,6 +102,8 @@ def parseSOAPString(rawXml: str) -> Dict[str, any]:
     #     logger.info(f"elem: ns: {ns} tag: {tagname} - attrib: {elem.attrib}")
 
     bodyDict = etree_to_dict(body_element[0])
+
+    headerDict = None if len(headerDict) == 0 else headerDict
 
     soapDict = {'header': headerDict, 'body': bodyDict}
     return soapDict
@@ -152,16 +146,16 @@ def envelopeHeader(requestHeader: dict) -> str:
         header += '<SOAP-ENV:Header>'
 
         if "MessageID" in requestHeader:
-            header += '<wsa5:MessageID>' + requestHeader.messageID + '</wsa5:MessageID>'
+            header += '<wsa5:MessageID>' + requestHeader["MessageID"] + '</wsa5:MessageID>'
 
         if "ReplyTo" in requestHeader:
-            header += '<wsa5:ReplyTo SOAP-ENV:mustUnderstand="1">' + '<wsa5:Address>' + requestHeader["replyTo"]["address"] + '</wsa5:Address>' + '</wsa5:ReplyTo>'
+            header += '<wsa5:ReplyTo SOAP-ENV:mustUnderstand="1">' + '<wsa5:Address>' + requestHeader["ReplyTo"]["Address"] + '</wsa5:Address>' + '</wsa5:ReplyTo>'
     
         if "To" in requestHeader:
-            header += "<wsa5:To SOAP-ENV:mustUnderstand=\"1\">" + requestHeader.to._ + "</wsa5:To>"
+            header += "<wsa5:To SOAP-ENV:mustUnderstand=\"1\">" + requestHeader["To"]["#text"] + "</wsa5:To>"
 
         if "Action" in requestHeader:
-            header += "<wsa5:Action SOAP-ENV:mustUnderstand=\"1\">" + requestHeader.action._.replace("Request$", "Response") + "</wsa5:Action>"
+            header += "<wsa5:Action SOAP-ENV:mustUnderstand=\"1\">" + requestHeader["Action"]["#text"].replace("Request", "Response") + "</wsa5:Action>"
         
         if "Security" in requestHeader:  
             username = requestHeader["Security"]["UsernameToken"]["Username"]
