@@ -36,7 +36,7 @@ class OnvifServer:
         handlers = [(r"/", self._MainHandler)]
 
         for service in self.services:
-            handlers.append(service.getRequestHandler())
+            handlers += service.getRequestHandler()
 
         app = Application(handlers)
         app.listen(10101)

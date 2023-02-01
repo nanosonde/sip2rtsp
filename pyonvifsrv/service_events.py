@@ -1,9 +1,14 @@
+import asyncio
 import re
+import json
 import logging
 import random
 import datetime
+from typing import Dict, List
+
 from pyonvifsrv.context import Context
 from pyonvifsrv.service_base import ServiceBase
+from pyonvifsrv.utils import parseSOAPString, getServiceNameFromOnvifNS, getMethodNameFromBody, decapitalize, envelopeHeader, envelopeFooter
 
 logger = logging.getLogger(__name__)
 
@@ -58,7 +63,8 @@ class PullPointSubscription():
     def __init__(self, id: str, expirationTime: datetime):
         self.id = id
         self.expirationTime: datetime = expirationTime
-        self.messages: Message = []
+        self.messages: List[Message] = []
+        asyncio.get_running_loop().create_future()
 
     def addMessage(self, message: Message):
         self.messages.append(message)
@@ -69,7 +75,41 @@ class EventsService(ServiceBase):
     def __init__(self, context: Context):
         super().__init__(context)
 
-        self.subscriptions = {}
+        self.subscriptions: Dict[str, PullPointSubscription]= {}
+
+    def getRequestHandler(self):
+        handlers = ServiceBase.getRequestHandler(self)
+        handlers += [((r"/onvif/pullpoint/(\d+)", self._SubscriptionHandler, dict(serviceInstance=self)))]
+        return handlers
+
+    def _getSubscriptionFromHeader(self):
+        subscription: PullPointSubscription = self.serviceInstance.subscriptions[subscriptionId]
+        if subscription is None:
+            logger.error("Subscription not found: {subscriptionId}".format(subscriptionId=subscriptionId))
+            self.set_status(404)
+            return
+
+        if subscription.expirationTime < datetime.datetime.now():
+            logger.error("Subscription expired: {subscriptionId}".format(subscriptionId=subscriptionId))
+            self.set_status(404)
+            return
+
+    class _SubscriptionHandler(ServiceBase._ServiceHandler):
+
+        async def post(self, subscriptionId):
+            reqBody = self.request.body.decode('utf-8')
+            #logger.debug(f"HTTP request body: {reqBody}")
+
+            # Parse the SOAP XML and create a dictionary which contains the
+            # SOAP header and body
+            reqData = parseSOAPString(reqBody)
+            reqData["urlParams"] = {"subscriptionId": subscriptionId}
+            logging.info(f"data: \n{json.dumps(reqData, indent=4)}")
+
+            [responseCode, response] = await self.callMethodFromSoapRequestData(reqData)
+            self.set_status(responseCode)
+            self.write(response)
+            self.finish()
 
     def createPullPointSubscription(self, data):
         listenIp = "10.10.10.70"
@@ -98,9 +138,8 @@ class EventsService(ServiceBase):
             </tev:CreatePullPointSubscriptionResponse>		
         '''.format(listenIp=listenIp, listenPort=listenPort, subscriptionId=subscriptionId, currentTime=currentTime.isoformat(), expirationTime=expirationTime.isoformat())
 
-    def pullMessages(self, data):
-        subscriptionId = data["body"]["PullMessages"]["SubscriptionReference"]["Address"].split("/")[-1]
-
+    async def pullMessages(self, data):
+        subscriptionId = data["urlParams"]["subscriptionId"]
         subscription = self.subscriptions[subscriptionId]
 
         messages = subscription.messages
@@ -108,13 +147,18 @@ class EventsService(ServiceBase):
 
         # messagesXml = subscription.messages.map(message => message.toXml()).join('')
         messagesXml = ''
+        for message in messages:
+            messagesXml += message.toXml()
 
         currentTime: datetime = datetime.datetime.now()
         terminationTime: datetime = subscription.expirationTime
 
         timeoutInSeconds = getDurationAsSeconds(data["body"]["PullMessages"]["Timeout"])
 
+        logger.debug("PullMessages(): Timeout in seconds: {timeoutInSeconds}".format(timeoutInSeconds=timeoutInSeconds))
+
         # sleep(timeoutInSeconds)
+        await asyncio.sleep(timeoutInSeconds)
 
         return '''
             <tev:PullMessagesResponse>
@@ -125,8 +169,13 @@ class EventsService(ServiceBase):
         '''.format(currentTime=currentTime.isoformat(), terminationTime=terminationTime.isoformat(), messagesXml=messagesXml)
 
     def renew(self, data):
-        terminationTime: datetime = ""
-        currentTime: datetime = ""
+        subscriptionId = data["urlParams"]["subscriptionId"]
+        subscription = self.subscriptions[subscriptionId]
+
+        terminationTimeInSeconds = getDurationAsSeconds(data["body"]["Renew"]["TerminationTime"])
+
+        currentTime: datetime = datetime.datetime.now()
+        terminationTime: datetime = currentTime + datetime.timedelta(seconds=terminationTimeInSeconds)
 
         return '''
             <wsnt:RenewResponse>
@@ -136,6 +185,8 @@ class EventsService(ServiceBase):
         '''.format(terminationTime=terminationTime.isoformat(), currentTime=currentTime.isoformat())
 
     def unsubscribe(self, data):
+        subscriptionId = data["urlParams"]["subscriptionId"]
+        del self.subscriptions[subscriptionId]
         return '''
             <wsnt:UnsubscribeResponse></wsnt:UnsubscribeResponse>        
         '''

@@ -1,5 +1,7 @@
+import asyncio
 import json
 import logging
+from typing import Tuple
 
 from tornado.web import RequestHandler
 
@@ -13,20 +15,26 @@ class ServiceBase:
         self.context = context
 
     def getRequestHandler(self):
-        return (r"/onvif/service/" + self.serviceName, self._ServiceHandler, dict(serviceInstance=self))
+        return [(r"/onvif/service/" + self.serviceName, self._ServiceHandler, dict(serviceInstance=self))]
 
     class _ServiceHandler(RequestHandler):
         def initialize(self, serviceInstance):
                 self.serviceInstance = serviceInstance        
-        def post(self):
+        async def post(self):
             reqBody = self.request.body.decode('utf-8')
-            #logger.debug(f"HTTP request body: {httpBody}")
+            #logger.debug(f"HTTP request body: {reqBody}")
 
             # Parse the SOAP XML and create a dictionary which contains the
             # SOAP header and body
             reqData = parseSOAPString(reqBody)
             logging.info(f"data: \n{json.dumps(reqData, indent=4)}")
 
+            [responseCode, response] = await self.callMethodFromSoapRequestData(reqData)
+            self.set_status(responseCode)
+            self.write(response)
+            self.finish()
+        
+        async def callMethodFromSoapRequestData(self, reqData) -> Tuple[int, str]:
             responseBody = ""
 
             methodName = decapitalize(getMethodNameFromBody(reqData["body"]))
@@ -35,24 +43,22 @@ class ServiceBase:
                     method = getattr(self.serviceInstance, methodName)
                 except AttributeError:
                     logger.error(f"Method {methodName} not found in service {self.serviceInstance.serviceName}")
-                    self.set_status(500)
-                    self.finish()
-                    return
-                responseBody = method(reqData)
+                    return (500, responseBody)
+
+                # Now call the method in the current class instance which generates the response
+                if asyncio.iscoroutinefunction(method):
+                    responseBody = await method(reqData)
+                else:
+                    responseBody = method(reqData)
             else:
                 logger.error("No method name found in request data: {data}".format(data=reqData["body"]))
-                self.set_status(500)
-                self.finish()
-                return
+                return (500, responseBody)
 
             if responseBody != "":
                 self.set_header("Content-Type", "application/soap+xml; charset=utf-8")
                 content = envelopeHeader(reqData["header"]) + responseBody + envelopeFooter();
                 #logger.debug(f"HTTP response body: {content}")
-                self.write(content)
-                self.finish()
+                return (200, content)
             else:
                 logger.error("No response body was generated")
-                self.set_status(500)
-                self.finish()
-
+                return (500, responseBody)
