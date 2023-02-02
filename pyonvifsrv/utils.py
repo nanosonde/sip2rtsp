@@ -152,7 +152,10 @@ def envelopeHeader(requestHeader: dict) -> str:
             header += '<wsa5:ReplyTo SOAP-ENV:mustUnderstand="1">' + '<wsa5:Address>' + requestHeader["ReplyTo"]["Address"] + '</wsa5:Address>' + '</wsa5:ReplyTo>'
     
         if "To" in requestHeader:
-            header += "<wsa5:To SOAP-ENV:mustUnderstand=\"1\">" + requestHeader["To"]["#text"] + "</wsa5:To>"
+            if "#text" in requestHeader["To"]:
+                header += "<wsa5:To SOAP-ENV:mustUnderstand=\"1\">" + requestHeader["To"]["#text"] + "</wsa5:To>"
+            else:
+                header += "<wsa5:To SOAP-ENV:mustUnderstand=\"1\">" + requestHeader["To"] + "</wsa5:To>"
 
         if "Action" in requestHeader:
             header += "<wsa5:Action SOAP-ENV:mustUnderstand=\"1\">" + requestHeader["Action"]["#text"].replace("Request", "Response") + "</wsa5:Action>"
