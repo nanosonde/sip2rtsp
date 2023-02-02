@@ -5,8 +5,8 @@ class Context:
     hostIP = "10.10.10.70"
     hostPort = 10101
     hostUrl = "http://" + hostIP + ":" + str(hostPort)
-    baseServicePath = "/onvif/service"
 
+    baseServicePath = "/onvif/service"
     baseServiceAddress = hostUrl + baseServicePath
     serviceAddresses = {
         "device": baseServiceAddress + "/device",

@@ -79,6 +79,7 @@ class PullPointSubscription():
 
 class EventsService(ServiceBase):
     serviceName = "events"
+    pullPointPath = r"/onvif/pullpoint"
 
     def __init__(self, context: Context):
         super().__init__(context)
@@ -87,7 +88,7 @@ class EventsService(ServiceBase):
 
     def getRequestHandler(self):
         handlers = ServiceBase.getRequestHandler(self)
-        handlers += [((r"/onvif/pullpoint/(\d+)", self._SubscriptionHandler, dict(serviceInstance=self)))]
+        handlers += [((self.pullPointPath + r"/(\d+)", self._SubscriptionHandler, dict(serviceInstance=self)))]
         return handlers
 
     class _SubscriptionHandler(ServiceBase._ServiceHandler):
@@ -108,14 +109,12 @@ class EventsService(ServiceBase):
             self.finish()
 
     def createPullPointSubscription(self, data):
-        listenIp = "10.10.10.70"
-        listenPort = "10101"
 
         subscriptionId = str(random.randint(0, 2**32 - 1))
 
         initialTerminationTime: str = data["body"]["CreatePullPointSubscription"]["InitialTerminationTime"]
         expireInSeconds = getDurationAsSeconds(initialTerminationTime)
-        logger.debug("Expire in seconds: {initialTerminationTime} - {expireInSeconds}".format(initialTerminationTime=initialTerminationTime, expireInSeconds=expireInSeconds))
+        logger.debug("PullPointSubscription expires in {expireInSeconds} seconds".format(expireInSeconds=expireInSeconds))
 
         currentTime: datetime = datetime.datetime.now(datetime.timezone.utc)
         expirationTime: datetime = currentTime + datetime.timedelta(seconds=expireInSeconds)
@@ -127,21 +126,19 @@ class EventsService(ServiceBase):
         return '''
             <tev:CreatePullPointSubscriptionResponse>
                 <tev:SubscriptionReference>
-                    <wsa5:Address>http://{listenIp}:{listenPort}/onvif/pullpoint/{subscriptionId}</wsa5:Address>
+                    <wsa5:Address>{pullPointAddress}</wsa5:Address>
                 </tev:SubscriptionReference>
                 <wsnt:CurrentTime>{currentTime}</wsnt:CurrentTime>
                 <wsnt:TerminationTime>{expirationTime}</wsnt:TerminationTime>
             </tev:CreatePullPointSubscriptionResponse>		
-        '''.format(listenIp=listenIp,
-                   listenPort=listenPort,
-                   subscriptionId=subscriptionId,
+        '''.format(pullPointAddress=self.context.hostUrl + self.pullPointPath + "/" + subscriptionId,
                    currentTime=currentTime.isoformat(sep="T", timespec="seconds").replace("+00:00", "Z"),
                    expirationTime=expirationTime.isoformat(sep="T", timespec="seconds")).replace("+00:00", "Z")
 
     async def pullMessages(self, data):
         subscriptionId = data["urlParams"]["subscriptionId"]
         if subscriptionId not in self.subscriptions:
-            return (404, "Subscription not found")
+            return ''
 
         subscription = self.subscriptions[subscriptionId]
 
@@ -154,7 +151,7 @@ class EventsService(ServiceBase):
 
         timeoutInSeconds = getDurationAsSeconds(data["body"]["PullMessages"]["Timeout"])
 
-        logger.debug("PullMessages(): Timeout in seconds: {timeoutInSeconds}".format(timeoutInSeconds=timeoutInSeconds))
+        logger.debug("PullMessages(): Timeout in {timeoutInSeconds} seconds".format(timeoutInSeconds=timeoutInSeconds))
 
         # sleep(timeoutInSeconds)
         await asyncio.sleep(timeoutInSeconds)
@@ -172,7 +169,7 @@ class EventsService(ServiceBase):
     def renew(self, data):
         subscriptionId = data["urlParams"]["subscriptionId"]
         if subscriptionId not in self.subscriptions:
-            return (404, "Subscription not found")
+            return ''
 
         subscription = self.subscriptions[subscriptionId]
 
@@ -182,6 +179,8 @@ class EventsService(ServiceBase):
         terminationTime: datetime = currentTime + datetime.timedelta(seconds=terminationTimeInSeconds)
 
         subscription.expirationTime = terminationTime
+
+        logger.debug("Renew PullPointSubscription: new expirationTime: {terminationTime}".format(terminationTime=terminationTime.isoformat(sep="T", timespec="seconds").replace("+00:00", "Z")))
 
         return '''
             <wsnt:RenewResponse>
@@ -195,10 +194,12 @@ class EventsService(ServiceBase):
         subscriptionId = data["urlParams"]["subscriptionId"]
         if subscriptionId in self.subscriptions:
             del self.subscriptions[subscriptionId]
-        return '''
-            <wsnt:UnsubscribeResponse></wsnt:UnsubscribeResponse>        
-        '''
-
+            return '''
+                <wsnt:UnsubscribeResponse></wsnt:UnsubscribeResponse>        
+            '''
+        else:
+            return ''
+            
     def getEventProperties(self, data):
         return '''
             <tev:GetEventPropertiesResponse>
