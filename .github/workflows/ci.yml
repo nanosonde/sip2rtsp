@@ -6,6 +6,11 @@ on:
       - dev
       - main
 
+# only run the latest commit to avoid cache overwrites
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   PYTHON_VERSION: 3.9
   PULSEGST_IMAGE: ghcr.io/nanosonde/pulsegst:main-fe22165
@@ -15,6 +20,10 @@ jobs:
     runs-on: ubuntu-latest
     name: Image Build
     steps:
+      - id: lowercaseRepo
+        uses: ASzc/change-string-case-action@v5
+        with:
+          string: ${{ github.repository }}    
       - name: Check out code
         uses: actions/checkout@v3
       - name: Set up QEMU
@@ -40,6 +49,6 @@ jobs:
           build-args: |
             PULSEGST_IMAGE=${{ env.PULSEGST_IMAGE}}
           tags: |
-            ghcr.io/nanosonde/sip2rtsp:${{ github.ref_name }}-${{ env.SHORT_SHA }}
+            ghcr.io/${{ steps.lowercaseRepo.outputs.lowercase }}:${{ github.ref_name }}-${{ env.SHORT_SHA }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
