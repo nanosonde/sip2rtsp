@@ -82,18 +82,6 @@ class EventsService(ServiceBase):
         handlers += [((r"/onvif/pullpoint/(\d+)", self._SubscriptionHandler, dict(serviceInstance=self)))]
         return handlers
 
-    def _getSubscriptionFromHeader(self):
-        subscription: PullPointSubscription = self.serviceInstance.subscriptions[subscriptionId]
-        if subscription is None:
-            logger.error("Subscription not found: {subscriptionId}".format(subscriptionId=subscriptionId))
-            self.set_status(404)
-            return
-
-        if subscription.expirationTime < datetime.datetime.now():
-            logger.error("Subscription expired: {subscriptionId}".format(subscriptionId=subscriptionId))
-            self.set_status(404)
-            return
-
     class _SubscriptionHandler(ServiceBase._ServiceHandler):
 
         async def post(self, subscriptionId):
