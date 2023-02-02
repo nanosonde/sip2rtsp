@@ -114,7 +114,7 @@ class EventsService(ServiceBase):
 
         initialTerminationTime: str = data["body"]["CreatePullPointSubscription"]["InitialTerminationTime"]
         expireInSeconds = getDurationAsSeconds(initialTerminationTime)
-        logger.debug("PullPointSubscription expires in {expireInSeconds} seconds".format(expireInSeconds=expireInSeconds))
+        logger.debug("New PullPointSubscription {subscriptionId} expires in {expireInSeconds} seconds".format(subscriptionId=subscriptionId, expireInSeconds=expireInSeconds))
 
         currentTime: datetime = datetime.datetime.now(datetime.timezone.utc)
         expirationTime: datetime = currentTime + datetime.timedelta(seconds=expireInSeconds)
@@ -151,7 +151,7 @@ class EventsService(ServiceBase):
 
         timeoutInSeconds = getDurationAsSeconds(data["body"]["PullMessages"]["Timeout"])
 
-        logger.debug("PullMessages(): Timeout in {timeoutInSeconds} seconds".format(timeoutInSeconds=timeoutInSeconds))
+        logger.debug("Waiting for event messages (PullPointSubscription {subscriptionId}): Timeout in {timeoutInSeconds} seconds".format(subscriptionId=subscriptionId, timeoutInSeconds=timeoutInSeconds))
 
         # sleep(timeoutInSeconds)
         await asyncio.sleep(timeoutInSeconds)
@@ -180,7 +180,9 @@ class EventsService(ServiceBase):
 
         subscription.expirationTime = terminationTime
 
-        logger.debug("Renew PullPointSubscription: new expirationTime: {terminationTime}".format(terminationTime=terminationTime.isoformat(sep="T", timespec="seconds").replace("+00:00", "Z")))
+        logger.debug("Renew PullPointSubscription {subscriptionId}: new expirationTime: {terminationTime}"
+                     .format(subscriptionId=subscriptionId,
+                             terminationTime=terminationTime.isoformat(sep="T", timespec="seconds").replace("+00:00", "Z")))
 
         return '''
             <wsnt:RenewResponse>
@@ -199,7 +201,7 @@ class EventsService(ServiceBase):
             '''
         else:
             return ''
-            
+
     def getEventProperties(self, data):
         return '''
             <tev:GetEventPropertiesResponse>
