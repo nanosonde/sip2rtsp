@@ -35,36 +35,44 @@ def getDurationAsSeconds(duration):
     return (years * 365 * 24 * 60 * 60) + (months * 30 * 24 * 60 * 60) + (days * 24 * 60 * 60) + (hours * 60 * 60) + (minutes * 60) + seconds
 
 class Message:
-    def __init__(self, type: str, timestamp: datetime, payload: any):
-        self.type = type
-        self.timestamp = timestamp
+    def __init__(self, topicname: str, payload: any):
+        self.topicname = topicname
+        self.timestamp = datetime.datetime.now(datetime.timezone.utc)
         self.payload = payload
+        self.properyOperation = 'Initialized'
 
     def toXml(self) -> str:
         return '''
             <wsnt:NotificationMessage>
-                <wsnt:Topic Dialect="http://www.onvif.org/ver10/tev/topicExpression/ConcreteSet">{self.type}</wsnt:Topic>
+                <wsnt:Topic Dialect="http://www.onvif.org/ver10/tev/topicExpression/ConcreteSet">{topicname}</wsnt:Topic>
                 <wsnt:Message>
-                    <tt:Message xmlns:tt="http://www.onvif.org/ver10/schema">
+                    <tt:Message xmlns:tt="http://www.onvif.org/ver10/schema" UtcTime="{timestamp}" PropertyOperation="{properyOperation}">
                         <tt:Source>
-                            <tt:SimpleItem Name="device" Value="{self.payload.device}" />
-                            <tt:SimpleItem Name="type" Value="{self.payload.type}" />
-                            <tt:SimpleItem Name="timestamp" Value="{self.timestamp.toISOString()}" />
+                            <tt:SimpleItem Name="device" Value="{device}" />
+                            <tt:SimpleItem Name="type" Value="{type}" />
                         </tt:Source>
                         <tt:Data>
-                            <tt:SimpleItem Name="data" Value="{self.payload.data}" />
+                            <tt:SimpleItem Name="data" Value="{data}" />
                         </tt:Data>
                     </tt:Message>
                 </wsnt:Message>
             </wsnt:NotificationMessage>
-        '''
+        '''.format(topicname=self.topicname,
+                   timestamp=self.timestamp.isoformat(sep="T", timespec="seconds").replace("+00:00", "Z"),
+                   device=self.payload["device"],
+                   type=self.payload["type"],
+                   data=self.payload["data"],
+                   properyOperation=self.properyOperation)
 
 class PullPointSubscription():
     def __init__(self, id: str, expirationTime: datetime):
         self.id = id
         self.expirationTime: datetime = expirationTime
         self.messages: List[Message] = []
-        asyncio.get_running_loop().create_future()
+        #asyncio.get_running_loop().create_future()
+
+        msg = Message('tns1:Device/tnsaxis:VideoSource/tnsaxis:MotionAlarm', {'device': 'device1', 'type': 'motion', 'data': 'true'})
+        self.addMessage(msg)
 
     def addMessage(self, message: Message):
         self.messages.append(message)
@@ -92,7 +100,7 @@ class EventsService(ServiceBase):
             # SOAP header and body
             reqData = parseSOAPString(reqBody)
             reqData["urlParams"] = {"subscriptionId": subscriptionId}
-            logging.info(f"data: \n{json.dumps(reqData, indent=4)}")
+            #logging.debug(f"data: \n{json.dumps(reqData, indent=4)}")
 
             [responseCode, response] = await self.callMethodFromSoapRequestData(reqData)
             self.set_status(responseCode)
@@ -109,7 +117,7 @@ class EventsService(ServiceBase):
         expireInSeconds = getDurationAsSeconds(initialTerminationTime)
         logger.debug("Expire in seconds: {initialTerminationTime} - {expireInSeconds}".format(initialTerminationTime=initialTerminationTime, expireInSeconds=expireInSeconds))
 
-        currentTime: datetime = datetime.datetime.now()
+        currentTime: datetime = datetime.datetime.now(datetime.timezone.utc)
         expirationTime: datetime = currentTime + datetime.timedelta(seconds=expireInSeconds)
 
         subscription = PullPointSubscription(subscriptionId, expirationTime)
@@ -124,21 +132,24 @@ class EventsService(ServiceBase):
                 <wsnt:CurrentTime>{currentTime}</wsnt:CurrentTime>
                 <wsnt:TerminationTime>{expirationTime}</wsnt:TerminationTime>
             </tev:CreatePullPointSubscriptionResponse>		
-        '''.format(listenIp=listenIp, listenPort=listenPort, subscriptionId=subscriptionId, currentTime=currentTime.isoformat(), expirationTime=expirationTime.isoformat())
+        '''.format(listenIp=listenIp,
+                   listenPort=listenPort,
+                   subscriptionId=subscriptionId,
+                   currentTime=currentTime.isoformat(sep="T", timespec="seconds").replace("+00:00", "Z"),
+                   expirationTime=expirationTime.isoformat(sep="T", timespec="seconds")).replace("+00:00", "Z")
 
     async def pullMessages(self, data):
         subscriptionId = data["urlParams"]["subscriptionId"]
+        if subscriptionId not in self.subscriptions:
+            return (404, "Subscription not found")
+
         subscription = self.subscriptions[subscriptionId]
 
-        messages = subscription.messages
-        subscription.messages = []
-
-        # messagesXml = subscription.messages.map(message => message.toXml()).join('')
         messagesXml = ''
-        for message in messages:
+        for message in subscription.messages:
             messagesXml += message.toXml()
 
-        currentTime: datetime = datetime.datetime.now()
+        currentTime: datetime = datetime.datetime.now(datetime.timezone.utc)
         terminationTime: datetime = subscription.expirationTime
 
         timeoutInSeconds = getDurationAsSeconds(data["body"]["PullMessages"]["Timeout"])
@@ -154,27 +165,36 @@ class EventsService(ServiceBase):
                 <tev:TerminationTime>{terminationTime}</tev:TerminationTime>
                 {messagesXml}
             </tev:PullMessagesResponse>
-        '''.format(currentTime=currentTime.isoformat(), terminationTime=terminationTime.isoformat(), messagesXml=messagesXml)
+        '''.format(currentTime=currentTime.isoformat(sep="T", timespec="seconds").replace("+00:00", "Z"),
+                   terminationTime=terminationTime.isoformat(sep="T", timespec="seconds").replace("+00:00", "Z"),
+                   messagesXml=messagesXml)
 
     def renew(self, data):
         subscriptionId = data["urlParams"]["subscriptionId"]
+        if subscriptionId not in self.subscriptions:
+            return (404, "Subscription not found")
+
         subscription = self.subscriptions[subscriptionId]
 
         terminationTimeInSeconds = getDurationAsSeconds(data["body"]["Renew"]["TerminationTime"])
 
-        currentTime: datetime = datetime.datetime.now()
+        currentTime: datetime = datetime.datetime.now(datetime.timezone.utc)
         terminationTime: datetime = currentTime + datetime.timedelta(seconds=terminationTimeInSeconds)
+
+        subscription.expirationTime = terminationTime
 
         return '''
             <wsnt:RenewResponse>
                 <wsnt:TerminationTime>{terminationTime}</wsnt:TerminationTime>
                 <wsnt:CurrentTime>{currentTime}</wsnt:CurrentTime>
             </wsnt:RenewResponse>
-        '''.format(terminationTime=terminationTime.isoformat(), currentTime=currentTime.isoformat())
+        '''.format(terminationTime=terminationTime.isoformat(sep="T", timespec="seconds").replace("+00:00", "Z"),
+                   currentTime=currentTime.isoformat(sep="T", timespec="seconds").replace("+00:00", "Z"))
 
     def unsubscribe(self, data):
         subscriptionId = data["urlParams"]["subscriptionId"]
-        del self.subscriptions[subscriptionId]
+        if subscriptionId in self.subscriptions:
+            del self.subscriptions[subscriptionId]
         return '''
             <wsnt:UnsubscribeResponse></wsnt:UnsubscribeResponse>        
         '''

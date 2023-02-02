@@ -35,8 +35,13 @@ class OnvifServer:
 
         handlers = [(r"/", self._MainHandler)]
 
+        default_handler_class = None
         for service in self.services:
+            # The device service is the default handler if no other path matches
+            if service.serviceName == "device":
+                default_handler_class = service._ServiceHandler
+                default_handler_args = dict(serviceInstance=service)    
             handlers += service.getRequestHandler()
 
-        app = Application(handlers)
+        app = Application(handlers, default_handler_class=default_handler_class, default_handler_args=default_handler_args)
         app.listen(10101)

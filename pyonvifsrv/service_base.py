@@ -11,6 +11,9 @@ from pyonvifsrv.context import Context
 logger = logging.getLogger(__name__)
 
 class ServiceBase:
+    # Override this in the derived class
+    serviceName = None
+
     def __init__(self, context: Context):
         self.context = context
 
@@ -27,7 +30,7 @@ class ServiceBase:
             # Parse the SOAP XML and create a dictionary which contains the
             # SOAP header and body
             reqData = parseSOAPString(reqBody)
-            logging.info(f"data: \n{json.dumps(reqData, indent=4)}")
+            #logging.debug(f"data: \n{json.dumps(reqData, indent=4)}")
 
             [responseCode, response] = await self.callMethodFromSoapRequestData(reqData)
             self.set_status(responseCode)
