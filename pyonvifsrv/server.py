@@ -23,6 +23,10 @@ class OnvifServer:
             EventsService(self.context),
             PtzService(self.context),
         ]
+        self.context.services = self.services
+
+    def getContext(self) -> Context:
+        return self.context
 
     class _MainHandler(RequestHandler):
         def get(self):

@@ -1,5 +1,6 @@
+import logging
 
-
+logger = logging.getLogger(__name__)
 
 class Context:
     hostIP = "10.10.10.70"
@@ -22,4 +23,12 @@ class Context:
 
     def __init__(self, config):
         self.config = config
+        self.services = []
+
+    def getService(self, serviceName):
+        for service in self.services:
+            if service.serviceName == serviceName:
+                return service
+        return None
+  
 
