@@ -31,4 +31,7 @@ class Context:
                 return service
         return None
   
-
+    def triggerDoorbellEvent(self):
+        logger.info("Triggering doorbell event")
+        eventsService = self.getService("events")
+        eventsService.triggerEvent('tns1:Device/tnsaxis:VideoSource/tnsaxis:MotionAlarm', {'device': 'device1', 'type': 'motion', 'data': 'true'})

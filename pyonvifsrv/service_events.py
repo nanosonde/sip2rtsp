@@ -69,13 +69,15 @@ class PullPointSubscription():
         self.id = id
         self.expirationTime: datetime = expirationTime
         self.messages: List[Message] = []
-        #asyncio.get_running_loop().create_future()
-
-        msg = Message('tns1:Device/tnsaxis:VideoSource/tnsaxis:MotionAlarm', {'device': 'device1', 'type': 'motion', 'data': 'true'})
-        self.addMessage(msg)
+        self.future = asyncio.get_running_loop().create_future()
 
     def addMessage(self, message: Message):
         self.messages.append(message)
+        self.future.set_result(True)
+
+    def reNew(self, expirationTime: datetime):
+        self.expirationTime = expirationTime
+        self.future = asyncio.get_running_loop().create_future()
 
 class EventsService(ServiceBase):
     serviceName = "events"
@@ -85,6 +87,10 @@ class EventsService(ServiceBase):
         super().__init__(context)
 
         self.subscriptions: Dict[str, PullPointSubscription]= {}
+
+    def triggerEvent(self, topicname: str, payload: any):
+        for subscription in self.subscriptions.values():
+            subscription.addMessage(Message(topicname, payload))
 
     def getRequestHandler(self):
         handlers = ServiceBase.getRequestHandler(self)
@@ -154,7 +160,13 @@ class EventsService(ServiceBase):
         logger.debug("Waiting for event messages (PullPointSubscription {subscriptionId}): Timeout in {timeoutInSeconds} seconds".format(subscriptionId=subscriptionId, timeoutInSeconds=timeoutInSeconds))
 
         # sleep(timeoutInSeconds)
-        await asyncio.sleep(timeoutInSeconds)
+        #await asyncio.sleep(timeoutInSeconds)
+        try:
+            await asyncio.wait_for(subscription.future, timeoutInSeconds)
+        except asyncio.TimeoutError:
+            pass
+        except asyncio.CancelledError:
+            pass
 
         return '''
             <tev:PullMessagesResponse>
@@ -178,7 +190,7 @@ class EventsService(ServiceBase):
         currentTime: datetime = datetime.datetime.now(datetime.timezone.utc)
         terminationTime: datetime = currentTime + datetime.timedelta(seconds=terminationTimeInSeconds)
 
-        subscription.expirationTime = terminationTime
+        subscription.reNew(terminationTime)
 
         logger.debug("Renew PullPointSubscription {subscriptionId}: new expirationTime: {terminationTime}"
                      .format(subscriptionId=subscriptionId,
