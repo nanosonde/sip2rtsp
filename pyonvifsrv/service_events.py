@@ -39,7 +39,7 @@ class Message:
         self.topicname = topicname
         self.timestamp = datetime.datetime.now(datetime.timezone.utc)
         self.payload = payload
-        self.properyOperation = 'Initialized'
+        self.properyOperation = 'Changed'
 
     def toXml(self) -> str:
         return '''
