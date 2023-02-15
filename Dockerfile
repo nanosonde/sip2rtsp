@@ -102,18 +102,9 @@ CMD []
 # sip2rtsp deps with Node.js and NPM for devcontainer
 FROM deps AS devcontainer
 
-# Do not start the actual sip2rtsp and onvif-server services on devcontainer as it will be started by VSCode
+# Do not start the actual sip2rtsp service on devcontainer as it will be started by VSCode
 # But start a fake services for simulating the logs
 COPY docker/fake_sip2rtsp_run /etc/s6-overlay/s6-rc.d/sip2rtsp/run
-COPY docker/fake_onvif-server_run /etc/s6-overlay/s6-rc.d/onvifsrv/run
-
-# Install Node 16
-RUN apt-get update \
-    && apt-get install wget -y \
-    && wget -qO- https://deb.nodesource.com/setup_16.x | bash - \
-    && apt-get install -y nodejs \
-    && rm -rf /var/lib/apt/lists/* \
-    && npm install -g npm@9
 
 WORKDIR /workspace/sip2rtsp
 
@@ -126,27 +117,11 @@ RUN --mount=type=bind,source=./requirements-dev.txt,target=/workspace/sip2rtsp/r
 
 CMD ["sleep", "infinity"]
 
-# ONVIF server build
-# force this to run on amd64 because QEMU is painfully slow
-FROM --platform=linux/amd64 node:16 AS onvif-server-build
-
-WORKDIR /work
-COPY onvif-server/package.json onvif-server/package-lock.json ./
-RUN npm install
-
-COPY onvif-server/ ./
-RUN npm run build
-#RUN npm run build \
-#    && mv dist/BASE_PATH/monacoeditorwork/* dist/assets/ \
-#    && rm -rf dist/BASE_PATH
-
 # Collect final files in a single layer
 FROM scratch AS rootfs
 
 WORKDIR /opt/sip2rtsp/
 COPY sip2rtsp sip2rtsp/
-COPY --from=onvif-server-build /work/dist/ onvif-server/
-COPY --from=onvif-server-build /work/node_modules/ onvif-server/node_modules/
 
 # sip2rtsp final container
 FROM deps as sip2rtsp

@@ -9,9 +9,3 @@ set -euxo pipefail
 #sudo chown -R "$(id -u):$(id -g)" /media/frigate
 
 make version
-
-cd onvif-server
-
-npm install
-
-npm run build
