@@ -12,13 +12,42 @@ import os
 import sys
 import traceback
 
+sys.path.append("../pyonvifsrv")
+
 from sip2rtsp.app import Sip2RtspApp
 from sip2rtsp.config import Sip2RtspConfig
+
+from pyonvifsrv.server import OnvifServer
 
 threading.current_thread().name = "sip2rtsp"
 
 logger = logging.getLogger(__name__)
 
+class CustomFormatter(logging.Formatter):
+
+    white = "\x1b[97;20m"
+    grey = "\x1b[38;20m"
+    green = "\x1b[32;20m"
+    cyan = "\x1b[36;20m"
+    yellow = "\x1b[33;20m"
+    red = "\x1b[31;20m"
+    bold_red = "\x1b[31;1m"
+    reset = "\x1b[0m"
+    fmt = "%(asctime)s - {}%(levelname)-8s{} - %(name)-25s - %(message)s" #.%(funcName)s
+    #fmt = "%(asctime)s - %(name)-25s {}%(levelname)-8s{}: %(message)s"
+
+    FORMATS = {
+        logging.DEBUG: fmt.format(grey, reset),
+        logging.INFO: fmt.format(green, reset),
+        logging.WARNING: fmt.format(yellow, reset),
+        logging.ERROR: fmt.format(red, reset),
+        logging.CRITICAL: fmt.format(bold_red, reset),
+    }
+
+    def format(self, record):
+        log_fmt = self.FORMATS.get(record.levelno)
+        formatter = logging.Formatter(log_fmt, datefmt="%Y-%m-%d %H:%M:%S")
+        return formatter.format(record)
 
 def set_log_levels(config) -> None:
     logging.getLogger().setLevel(config.logger.default.value.upper())
@@ -63,9 +92,12 @@ async def shutdown(signal, loop, glib_loop, glib_thread):
 
 
 if __name__ == "__main__":
+    handler = logging.StreamHandler()
+    handler.setFormatter(CustomFormatter())
+
     logging.basicConfig(
-        format="[%(asctime)s] %(name)-25s %(levelname)-8s: %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
+        level=logging.DEBUG,
+        handlers=[handler]
     )
 
     try:
@@ -97,6 +129,7 @@ if __name__ == "__main__":
     glib_thread.start()
 
     sip2rtsp_app = Sip2RtspApp(loop, glib_loop, config)
+    onvifServer = OnvifServer(loop, config)
 
     async def graceful_shutdown(s, loop, glib_loop, glib_thread):
         await sip2rtsp_app.stop()
@@ -112,6 +145,7 @@ if __name__ == "__main__":
         )
 
     main_task = loop.create_task(sip2rtsp_app.start())
+    onvif_task = loop.create_task(onvifServer.start_server())
 
     try:
         asyncio.set_event_loop(loop)
@@ -122,6 +156,7 @@ if __name__ == "__main__":
         logger.debug(f"Received KeyboardInterrupt")
     finally:
         loop.run_until_complete(main_task)
+        loop.run_until_complete(onvif_task)
         loop.close()
         asyncio.set_event_loop(None)
 
