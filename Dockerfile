@@ -122,6 +122,7 @@ FROM scratch AS rootfs
 
 WORKDIR /opt/sip2rtsp/
 COPY sip2rtsp sip2rtsp/
+COPY pyonvifsrv pyonvifsrv/
 
 # sip2rtsp final container
 FROM deps as sip2rtsp
