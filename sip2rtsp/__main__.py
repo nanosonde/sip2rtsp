@@ -14,6 +14,7 @@ import traceback
 
 sys.path.append("../pyonvifsrv")
 
+from sip2rtsp.version import VERSION
 from sip2rtsp.app import Sip2RtspApp
 from sip2rtsp.config import Sip2RtspConfig
 
@@ -130,6 +131,7 @@ if __name__ == "__main__":
 
     sip2rtsp_app = Sip2RtspApp(loop, glib_loop, config)
     onvifServer = OnvifServer(loop, config)
+    onvifServer.getContext().setFirmwareVersion(VERSION)
 
     async def graceful_shutdown(s, loop, glib_loop, glib_thread):
         await sip2rtsp_app.stop()

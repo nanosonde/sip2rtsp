@@ -1,4 +1,5 @@
 import logging
+import datetime
 from pyonvifsrv.context import Context
 from pyonvifsrv.service_base import ServiceBase
 
@@ -11,6 +12,9 @@ class DeviceService(ServiceBase):
         super().__init__(context)
 
     def getSystemDateAndTime(self, data):
+
+        currentTime: datetime = datetime.datetime.now(datetime.timezone.utc)
+
         return '''
             <tds:GetSystemDateAndTimeResponse>
                 <tds:SystemDateAndTime>
@@ -21,25 +25,21 @@ class DeviceService(ServiceBase):
                     </tt:TimeZone>
                     <tt:UTCDateTime>
                         <tt:Time>
-                            <tt:Hour>19</tt:Hour>
-                            <tt:Minute>14</tt:Minute>
-                            <tt:Second>37</tt:Second>
+                            <tt:Hour>{hour}</tt:Hour>
+                            <tt:Minute>{minute}</tt:Minute>
+                            <tt:Second>{second}</tt:Second>
                         </tt:Time>
                         <tt:Date>
-                            <tt:Year>2014</tt:Year>
-                            <tt:Month>12</tt:Month>
-                            <tt:Day>24</tt:Day>
+                            <tt:Year>{year}</tt:Year>
+                            <tt:Month>{month}</tt:Month>
+                            <tt:Day>{day}</tt:Day>
                         </tt:Date>
                     </tt:UTCDateTime>
                 </tds:SystemDateAndTime>
             </tds:GetSystemDateAndTimeResponse>		
-        '''
+        '''.format(hour=currentTime.hour, minute=currentTime.minute, second=currentTime.second, year=currentTime.year, month=currentTime.month, day=currentTime.day)
 
     def getScopes(self, data):
-        # <tds:Scopes>
-        # 	<tt:ScopeDef>Fixed</tt:ScopeDef>
-        # 	<tt:ScopeItem>onvif://www.onvif.org/Profile/T</tt:ScopeItem>
-        # </tds:Scopes>
         return '''
             <tds:GetScopesResponse>
                 <tds:Scopes>
@@ -64,29 +64,29 @@ class DeviceService(ServiceBase):
                 </tds:Scopes>
                 <tds:Scopes>
                     <tt:ScopeDef>Fixed</tt:ScopeDef>
-                    <tt:ScopeItem>onvif://www.onvif.org/hardware/HD_PREDATOR</tt:ScopeItem>
+                    <tt:ScopeItem>onvif://www.onvif.org/hardware/SIP2RTSP</tt:ScopeItem>
                 </tds:Scopes>
                 <tds:Scopes>
                     <tt:ScopeDef>Configurable</tt:ScopeDef>
-                    <tt:ScopeItem>onvif://www.onvif.org/name/PREDATOR</tt:ScopeItem>
+                    <tt:ScopeItem>onvif://www.onvif.org/name/{name}</tt:ScopeItem>
                 </tds:Scopes>
                 <tds:Scopes>
                     <tt:ScopeDef>Configurable</tt:ScopeDef>
-                    <tt:ScopeItem>onvif://www.onvif.org/location/</tt:ScopeItem>
+                    <tt:ScopeItem>onvif://www.onvif.org/location/{location}</tt:ScopeItem>
                 </tds:Scopes>
             </tds:GetScopesResponse>
-        '''
+        '''.format(name=self.context.cameraName, location=self.context.cameraLocation)
 
     def getDeviceInformation(self, data):
         return '''
             <tds:GetDeviceInformationResponse>
-                <tds:Manufacturer>Mockup Manufacturer</tds:Manufacturer>
-                <tds:Model>Mockup Model</tds:Model>
-                <tds:FirmwareVersion>Mockup_15_14_13</tds:FirmwareVersion>
+                <tds:Manufacturer>SIP2RTSP Manufacturer</tds:Manufacturer>
+                <tds:Model>SIP2RTSP Model</tds:Model>
+                <tds:FirmwareVersion>{firmwareVersion}</tds:FirmwareVersion>
                 <tds:SerialNumber>00000000</tds:SerialNumber>
-                <tds:HardwareId>MOCKUP</tds:HardwareId>
+                <tds:HardwareId>SIP2RTSP</tds:HardwareId>
             </tds:GetDeviceInformationResponse>		
-        '''
+        '''.format(firmwareVersion = self.context.firmwareVersion)
 
     def getCapabilities(self, data):
         return '''
@@ -226,7 +226,6 @@ class DeviceService(ServiceBase):
                    deviceIoServiceAddress=self.context.serviceAddresses["deviceio"])
 
     def getHostname(self, data):
-        hostname = "IPNC-RDK"
         return '''
 			<tds:GetHostnameResponse>
 				<tds:HostnameInformation>
@@ -234,7 +233,7 @@ class DeviceService(ServiceBase):
 					<tt:Name>{hostname}</tt:Name>
 				</tds:HostnameInformation>
 			</tds:GetHostnameResponse>
-        '''.format(hostname=hostname)
+        '''.format(hostname=self.context.hostName)
 
     def getDNS(self, data):
         return '''
@@ -260,8 +259,6 @@ class DeviceService(ServiceBase):
         '''
 
     def getZeroConfiguration(self, data):
-        listenIp = "10.10.10.70"
-        interfaceName = "ens3"
         return '''
             <tds:GetZeroConfigurationResponse>
                 <tds:ZeroConfiguration>
@@ -270,7 +267,7 @@ class DeviceService(ServiceBase):
                     <tt:Addresses>{listenIp}</tt:Addresses>
                 </tds:ZeroConfiguration>
             </tds:GetZeroConfigurationResponse>
-        '''.format(interfaceName=interfaceName, listenIp=listenIp)
+        '''.format(interfaceName=self.context.interfaceName, listenIp=self.context.hostIP)
 
     def getNTP(self, data):
         return '''

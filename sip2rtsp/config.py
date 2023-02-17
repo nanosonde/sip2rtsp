@@ -72,6 +72,15 @@ class OnvifConfig(Sip2RtspBaseModel):
         default="10.10.10.70", title="ONVIF server: address to advertise."
     )
     server_port: int = Field(default=10101, title="ONVIF server: port to advertise.")
+    hostname: str = Field(
+        default="sip2rtsp-cam", title="ONVIF server: hostname to report"
+    )
+    camera_name: str = Field(
+        default="sip2rtsp-cam", title="ONVIF server: camera name to report"
+    )
+    camera_location: str = Field(
+        default="sip2rtsp-location", title="ONVIF server: camera location to report"
+    )
 
 
 class Sip2RtspConfig(Sip2RtspBaseModel):
