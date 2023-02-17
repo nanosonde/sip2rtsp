@@ -66,6 +66,17 @@ class SipConfig(Sip2RtspBaseModel):
         default="sip:11@10.10.10.80", title="SIP doorbell: remote URI to dial."
     )
 
+class CameraConfig(Sip2RtspBaseModel):
+    name: str = Field(
+        default="sip2rtsp-cam", title="ONVIF server: Camera name to report"
+    )
+    location: str = Field(
+        default="sip2rtsp-location", title="ONVIF server: Camera location to report"
+    )
+    width: int = Field(default=1920, title="ONVIF server: Camera width to report")
+    height: int = Field(default=1080, title="ONVIF server: Camera height to report")
+    fps: int = Field(default=30, title="ONVIF server: Camera fps to report")
+    bitrate: int = Field(default=1000, title="ONVIF server: Camera bitrate to report")
 
 class OnvifConfig(Sip2RtspBaseModel):
     server_address: str = Field(
@@ -75,13 +86,7 @@ class OnvifConfig(Sip2RtspBaseModel):
     hostname: str = Field(
         default="sip2rtsp-cam", title="ONVIF server: hostname to report"
     )
-    camera_name: str = Field(
-        default="sip2rtsp-cam", title="ONVIF server: camera name to report"
-    )
-    camera_location: str = Field(
-        default="sip2rtsp-location", title="ONVIF server: camera location to report"
-    )
-
+    camera: CameraConfig = Field(default_factory=CameraConfig, title="ONVIF camera configuration")
 
 class Sip2RtspConfig(Sip2RtspBaseModel):
     environment_vars: Dict[str, str] = Field(

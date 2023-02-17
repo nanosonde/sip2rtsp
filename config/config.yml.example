@@ -30,5 +30,10 @@ onvif:
   server_address: 10.10.10.70
   server_port: 10101
   hostname: sip2rtsp-cam
-  camera_name: sip2rtsp-cam
-  camera_location: sip2rtsp-location
+  camera:
+    name: sip2rtsp-cam
+    location: sip2rtsp-location
+    width: 1920
+    height: 1080
+    fps: 30
+    bitrate: 1000

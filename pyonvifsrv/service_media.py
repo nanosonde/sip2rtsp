@@ -36,9 +36,6 @@ class MediaService(ServiceBase):
 
     def getVideoSources(self, data):
         videoSrcName = "vidsrc0"
-        videoSrcFrameRate = "30"
-        videoSrcWidth = "1920"
-        videoSrcHeight = "1080"
         return '''
             <trt:GetVideoSourcesResponse>
                 <trt:VideoSources token="{videoSrcName}">
@@ -49,7 +46,7 @@ class MediaService(ServiceBase):
                     </tt:Resolution>
                 </trt:VideoSources>
             </trt:GetVideoSourcesResponse>
-        '''.format(videoSrcName=videoSrcName, videoSrcFrameRate=videoSrcFrameRate, videoSrcWidth=videoSrcWidth, videoSrcHeight=videoSrcHeight)
+        '''.format(videoSrcName=videoSrcName, videoSrcFrameRate=self.context.cameraFps, videoSrcWidth=self.context.cameraWidth, videoSrcHeight=self.context.cameraHeight)
 
     def getVideoSourceConfiguration(self, data):
         return '''

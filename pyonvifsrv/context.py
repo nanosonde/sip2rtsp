@@ -30,8 +30,12 @@ class Context:
             "deviceio": self.baseServiceAddress + "/deviceio",
         }
 
-        self.cameraName = self.config.onvif.camera_name
-        self.cameraLocation = self.config.onvif.camera_location
+        self.cameraName = self.config.onvif.camera.name
+        self.cameraLocation = self.config.onvif.camera.location
+        self.cameraWidth = self.config.onvif.camera.width
+        self.cameraHeight = self.config.onvif.camera.height
+        self.cameraFps = self.config.onvif.camera.fps
+        self.cameraBitrate = self.config.onvif.camera.bitrate
 
     def getService(self, serviceName):
         for service in self.services:
