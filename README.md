@@ -5,5 +5,7 @@ Please the following block diagram how this is achieved.
 
 
 ## Block diagram
+Click [here](https://raw.githubusercontent.com/nanosonde/sip2rtsp/main/docs/sip2rtsp_block_diagram.svg) to open the block diagram in full screen.
+
 ![block_diagram](./docs/sip2rtsp_block_diagram.svg)
 
