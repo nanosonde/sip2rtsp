@@ -9,3 +9,19 @@ Click [here](https://raw.githubusercontent.com/nanosonde/sip2rtsp/main/docs/sip2
 
 ![block_diagram](./docs/sip2rtsp_block_diagram.svg)
 
+
+## Requirements
+
+* docker (tested with 20.10.x on Ubuntu Jammy)
+
+## Installation
+
+Clone the GIT repo:
+`git clone https://github.com/nanosonde/sip2rtsp.git`
+
+Prepare configration file based on the example config file:
+`cp config/config.yaml.example config/config.yaml`
+
+Run the docker container with host networking mode:
+`make run`
+
