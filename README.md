@@ -16,12 +16,15 @@ Click [here](https://raw.githubusercontent.com/nanosonde/sip2rtsp/main/docs/sip2
 
 ## Installation
 
-Clone the GIT repo:
-`git clone https://github.com/nanosonde/sip2rtsp.git`
+1. Clone the GIT repo:
 
-Prepare configration file based on the example config file:
-`cp config/config.yaml.example config/config.yaml`
+  `git clone https://github.com/nanosonde/sip2rtsp.git`
 
-Run the docker container with host networking mode:
-`make run`
+2. Prepare configration file based on the example config file:
+
+  `cp config/config.yaml.example config/config.yaml`
+
+3. Run the docker container in host networking mode:
+
+  `make run`
 
