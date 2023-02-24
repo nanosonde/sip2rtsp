@@ -18,6 +18,7 @@ logger = logging.getLogger(__name__)
 
 class Sip2RtspApp:
     def __init__(self, aioloop, loop, config) -> None:
+        self.ringCallback = None
         self.aioloop = aioloop
         self.loop = loop
         self.config = config
@@ -53,6 +54,10 @@ class Sip2RtspApp:
         )
         self.bs_ctrl.set_callback(self.event_handler)
 
+    def set_RingingCallback(self, callback):
+        """Set the callback function to be called when an incoming call event is signalled"""
+        self.ringCallback = callback
+
     def set_environment_vars(self) -> None:
         for key, value in self.config.environment_vars.items():
             os.environ[key] = value
@@ -76,6 +81,8 @@ class Sip2RtspApp:
         # logger.debug("Event: " + str(data))
         if data["type"] == EVENT_TYPE.CALL_INCOMING:
             logger.info("Incoming call from {peeruri}".format(peeruri=data["peeruri"]))
+            if self.ringCallback:
+                self.ringCallback(data["peeruri"])
         elif data["type"] == EVENT_TYPE.CALL_CLOSED:
             logger.info("Call closed from {peeruri}".format(peeruri=data["peeruri"]))
         elif data["type"] == EVENT_TYPE.CALL_ESTABLISHED:

@@ -133,6 +133,11 @@ if __name__ == "__main__":
     onvifServer = OnvifServer(loop, config)
     onvifServer.getContext().setFirmwareVersion(VERSION)
 
+    def onRinging(_peerUri: str):
+        onvifServer.getContext().triggerDoorbellEvent()
+
+    sip2rtsp_app.set_RingingCallback(onRinging)
+
     async def graceful_shutdown(s, loop, glib_loop, glib_thread):
         await sip2rtsp_app.stop()
         await shutdown(s, loop, glib_loop, glib_thread)
