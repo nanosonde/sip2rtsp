@@ -46,7 +46,7 @@ Building gstreamer and pulseaudio takes a long time. So building those is done i
 
 ## Configuration
 
-See the comments provided in config/config.yaml.example
+See the comments provided in [config/config.yaml.example](https://github.com/nanosonde/sip2rtsp/blob/main/config/config.yml.example)
 
 ## Ports
 When the docker container is running in host networking mode, it will use the following ports (default config):
