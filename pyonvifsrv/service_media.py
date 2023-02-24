@@ -20,7 +20,7 @@ class MediaService(ServiceBase):
 				<tt:Timeout>PT0S</tt:Timeout>
 			  </trt:MediaUri>
 			</trt:GetSnapshotUriResponse>
-        '''.format(snapshotUri=self.context.snaphotUri)
+        '''.format(snapshotUri=self.context.snapshotUri)
 
     def getStreamUri(self, data):
         return '''
