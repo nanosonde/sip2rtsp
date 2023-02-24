@@ -35,3 +35,13 @@ Building gstreamer and pulseaudio takes a long time. So building those is done i
 
 See the comments provided in config/config.yaml.example
 
+## Ports
+When the docker container is running in host networking mode, it will use the following ports (default config):
+* 4444(TCP): Baresip [TCP control interface using netstring (JSON)](https://github.com/baresip/baresip/blob/main/modules/ctrl_tcp/ctrl_tcp.c)
+* 8000(TCP): Baresip HTTP control interface
+* 8554(TCP): gstreamer ONVIF RTSP server (Python3 script with gstreamr Python bindings)
+* 10101(TCP): ONVIF SOAP HTTP Port (Python3 script)
+
+## TODO
+* Add more error handling and more logic to the ONVIF server written in Python3
+* Currently only ONVIF pullpoint subscription is supported. Add other mechanism as required
