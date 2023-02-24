@@ -20,6 +20,7 @@ So all credits concerning the docker setup belongs to them.
 * A SIP video doorbell could be easily created by just using any video-only camera combined with a two-way audio-only doorphone that is based on SIP or is using some SIP adapter that connects to an analogue two-way audio-only doorphone
 * Everything is running in a docker container. No need to setup everything manually.
 * A single YAML config file which controls all main aspects of the RTSP server an the ONVIF server
+* Tested with the [scrypted](https://www.scrypted.app/) ONVIF plugin
 
 ## Requirements
 
