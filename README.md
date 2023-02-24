@@ -11,6 +11,9 @@ Click [here](https://raw.githubusercontent.com/nanosonde/sip2rtsp/main/docs/sip2
 
 ## Features
 * a SIP peer is called via baresip if the RTSP backchannel received the RTSP SETUP request, hangup on RTSP TEARDOWN request or connection is closed
+* Incoming SIP calls (SIP RINGING) trigger ONVIF events, e.g. doorbell event message. Currently only ONVIF pullpoint subscription is supported.
+* well-known baresip SIP client is used to handle calls to and from the SIP video doorbell
+* A SIP video doorbell could be easily created by using just some video-only camera combined with an two-way audio-only doorphone that is based on SIP or is using some SIP adapter that connects to an analogue two-way audio-only doorphone
 
 ## Requirements
 
