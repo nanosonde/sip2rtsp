@@ -28,8 +28,10 @@ sip:
   remote_uri: sip:11@10.10.10.80
 
 onvif:
-  server_address: 10.10.10.70
-  server_port: 10101
+  listen_server_address: 0.0.0.0
+  listen_server_port: 10101
+  advertised_server_address: 10.10.10.70
+  advertised_server_port: 10101
   hostname: sip2rtsp-cam
   camera:
     name: sip2rtsp-cam

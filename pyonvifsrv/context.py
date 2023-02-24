@@ -11,8 +11,8 @@ class Context:
 
         self.interfaceName = "ens3"
         self.hostName = self.config.onvif.hostname
-        self.hostIP = self.config.onvif.server_address
-        self.hostPort = self.config.onvif.server_port
+        self.hostIP = self.config.onvif.advertised_server_address
+        self.hostPort = self.config.onvif.advertised_server_port
 
         self.hostUrl = "http://" + self.hostIP + ":" + str(self.hostPort)
 

@@ -33,3 +33,5 @@ Building gstreamer and pulseaudio takes a long time. So building those is done i
 
 ## Configuration
 
+See the comments provided in config/config.yaml.example
+

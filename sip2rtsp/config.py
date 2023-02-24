@@ -81,10 +81,14 @@ class CameraConfig(Sip2RtspBaseModel):
     bitrate: int = Field(default=1000, title="ONVIF server: Camera bitrate to report")
 
 class OnvifConfig(Sip2RtspBaseModel):
-    server_address: str = Field(
+    listen_server_address: str = Field(
+        default="0.0.0.0", title="ONVIF server: address to listen on."
+    )
+    listen_server_port: int = Field(default=10101, title="ONVIF server: port to listen on.")
+    advertised_server_address: str = Field(
         default="10.10.10.70", title="ONVIF server: address to advertise."
     )
-    server_port: int = Field(default=10101, title="ONVIF server: port to advertise.")
+    advertised_server_port: int = Field(default=10101, title="ONVIF server: port to advertise.")
     hostname: str = Field(
         default="sip2rtsp-cam", title="ONVIF server: hostname to report"
     )
