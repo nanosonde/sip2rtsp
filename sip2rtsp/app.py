@@ -139,6 +139,25 @@ class Sip2RtspApp:
                 "DESCRIBE request header: Require: {value}".format(value=value)
             )
 
+    def client_teardown_request(self, client, context: GstRtspServer.RTSPContext):
+        logger.debug(
+            "Received TEARDOWN request from {remoteip}".format(
+                remoteip=client.get_connection().get_ip()
+            )
+        )
+        reqmsg: GstRtsp.RTSPMessage = context.request
+        # reqmsg.dump()
+        res, value = reqmsg.get_header(GstRtsp.RTSPHeaderField.REQUIRE, 0)
+        if res == GstRtsp.RTSPResult.OK:
+            logger.debug("TEARDOWN request header: Require: {value}".format(value=value))
+
+        async def hangup():
+            logger.info("ONVIF backchannel TEARDOWN request. Hanging up...")
+            await self.bs_ctrl.hangup()
+            logger.info("Hanging up done...")
+
+        asyncio.run_coroutine_threadsafe(hangup(), self.aioloop)
+
     def client_closed(self, client):
         logger.debug(
             "RTSP client connection from {remoteip} closed".format(
@@ -170,5 +189,6 @@ class Sip2RtspApp:
         client.connect("play-request", self.client_play_request)
         client.connect("setup-request", self.client_setup_request)
         client.connect("describe-request", self.client_describe_request)
+        client.connect("teardown-request", self.client_teardown_request)
         client.connect("closed", self.client_closed)
         # client.connect("send_message", self.client_send_message)
