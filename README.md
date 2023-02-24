@@ -19,7 +19,7 @@ So all credits concerning the docker setup belongs to them.
 * well-known baresip SIP client is used to handle calls to and from the SIP video doorbell
 * A SIP video doorbell could be easily created by just using any video-only camera combined with a two-way audio-only doorphone that is based on SIP or is using some SIP adapter that connects to an analogue two-way audio-only doorphone
 * Everything is running in a docker container. No need to setup everything manually.
-* A single YAML config file which controls all main aspects of the RTSP server an the ONVIF server
+* A [single YAML config file](https://github.com/nanosonde/sip2rtsp/blob/main/config/config.yml.example) which controls all main aspects of the RTSP server an the ONVIF server
 * Tested with the [scrypted](https://www.scrypted.app/) ONVIF plugin and [ONVIF device manager](https://sourceforge.net/projects/onvifdm/)
 
 ## Requirements
