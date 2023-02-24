@@ -52,7 +52,7 @@ See the comments provided in [config/config.yaml.example](https://github.com/nan
 When the docker container is running in host networking mode, it will use the following ports (default config):
 * 4444(TCP): Baresip [TCP control interface using netstring (JSON)](https://github.com/baresip/baresip/blob/main/modules/ctrl_tcp/ctrl_tcp.c)
 * 8000(TCP): Baresip HTTP control interface
-* 8554(TCP): gstreamer ONVIF RTSP server (Python3 script with gstreamr Python bindings)
+* 8554(TCP): gstreamer ONVIF RTSP server (Python3 script with gstreamer Python bindings)
 * 10101(TCP): ONVIF SOAP HTTP Port (Python3 script)
 
 ## TODO
