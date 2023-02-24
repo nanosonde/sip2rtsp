@@ -34,7 +34,7 @@ onvif:
   camera:
     name: sip2rtsp-cam
     location: sip2rtsp-location
-    snaphotUri: http://10.10.10.10:54321/snapshot
+    snapshotUri: http://10.10.10.10:54321/snapshot
     # The streamURI must be adjusted if the port and/or mount_point from the rtsp_server config were changed
     streamUri: rtsp://10.10.10.70:8554/test
     width: 1920

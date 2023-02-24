@@ -34,7 +34,7 @@ class Context:
         self.cameraFps = self.config.onvif.camera.fps
         self.cameraBitrate = self.config.onvif.camera.bitrate
 
-        self.snaphotUri = self.config.onvif.camera.snaphotUri
+        self.snapshotUri = self.config.onvif.camera.snapshotUri
         self.streamUri = self.config.onvif.camera.streamUri
 
 
