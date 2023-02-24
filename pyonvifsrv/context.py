@@ -4,9 +4,6 @@ logger = logging.getLogger(__name__)
 
 class Context:
     
-    snaphotUri = "http://10.10.10.10:54321/snapshot"
-    streamUri = "rtsp://10.10.10.70:8554/test"
-
     def __init__(self, config):
         self.firmwareVersion = "N/A"
         self.config = config
@@ -36,6 +33,10 @@ class Context:
         self.cameraHeight = self.config.onvif.camera.height
         self.cameraFps = self.config.onvif.camera.fps
         self.cameraBitrate = self.config.onvif.camera.bitrate
+
+        self.snaphotUri = self.config.onvif.camera.snaphotUri
+        self.streamUri = self.config.onvif.camera.streamUri
+
 
     def getService(self, serviceName):
         for service in self.services:
