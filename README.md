@@ -9,6 +9,8 @@ Click [here](https://raw.githubusercontent.com/nanosonde/sip2rtsp/main/docs/sip2
 
 ![block_diagram](./docs/sip2rtsp_block_diagram.svg)
 
+## Features
+* a SIP peer is called via baresip if the RTSP backchannel received the RTSP SETUP request, hangup on RTSP TEARDOWN request or connection is closed
 
 ## Requirements
 
