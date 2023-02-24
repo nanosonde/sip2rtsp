@@ -153,6 +153,9 @@ class EventsService(ServiceBase):
         for message in subscription.messages:
             messagesXml += message.toXml()
 
+        # Remove all messages from the subscription
+        subscription.messages = []
+
         currentTime: datetime = datetime.datetime.now(datetime.timezone.utc)
         terminationTime: datetime = subscription.expirationTime
 
