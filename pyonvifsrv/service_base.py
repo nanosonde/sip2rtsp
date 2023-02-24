@@ -84,7 +84,8 @@ class ServiceBase:
                     envelopeHeader(reqData["header"]) + responseBody + envelopeFooter()
                 )
                 # logger.debug(f"HTTP response body: {content}")
-                return (200, content)
+                httpStatusCode = 500 if "<SOAP-ENV:Fault>" in responseBody else 200
+                return (httpStatusCode, content)
             else:
                 logger.error(
                     "No response body was generated for method {methodName}".format(

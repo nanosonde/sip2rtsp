@@ -13,6 +13,8 @@ import xml.etree.ElementTree as ET
 from typing import Tuple, Dict
 from collections import defaultdict
 
+from pyonvifsrv.const import ERROR_TYPE
+
 logger = logging.getLogger(__name__)
 
 decapitalize = lambda s: s[:1].lower() + s[1:] if s else ''
@@ -197,3 +199,25 @@ def passwordDigest(self) -> dict:
         'nonce': base64.b64encode(nonce),
         'timestamp': timestamp,
     }
+
+def errorReponse(subcode: ERROR_TYPE, reason: str) -> str:
+    return '''<SOAP-ENV:Fault>
+				<SOAP-ENV:Code>
+					<SOAP-ENV:Value>fault code</SOAP-ENV:Value>
+					<SOAP-ENV:Subcode>
+						<SOAP-ENV:Value>ter:fault subcode</SOAP-ENV:Value>
+						<SOAP-ENV:Subcode>
+							<SOAP-ENV:Value>ter:{subcode}</SOAP-ENV:Value>
+						</SOAP-ENV:Subcode>
+					</SOAP-ENV:Subcode>
+				</SOAP-ENV:Code>
+				<SOAP-ENV:Reason>
+					<SOAP-ENV:Text xml:lang="en">{reason}</SOAP-ENV:Text>
+				</SOAP-ENV:Reason>
+				<SOAP-ENV:Node>http://www.w3.org/2003/05/soap-envelope/node/ultimateReceiver</SOAP-ENV:Node>
+				<SOAP-ENV:Role>http://www.w3.org/2003/05/soap-envelope/role/ultimateReceiver</SOAP-ENV:Role>
+				<SOAP-ENV:Detail>
+					<SOAP-ENV:Text>{reason}</SOAP-ENV:Text>
+				</SOAP-ENV:Detail>
+			</SOAP-ENV:Fault>
+            '''.format(subcode=subcode, reason=reason)

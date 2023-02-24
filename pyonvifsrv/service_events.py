@@ -8,7 +8,8 @@ from typing import Dict, List
 
 from pyonvifsrv.context import Context
 from pyonvifsrv.service_base import ServiceBase
-from pyonvifsrv.utils import parseSOAPString, getServiceNameFromOnvifNS, getMethodNameFromBody, decapitalize, envelopeHeader, envelopeFooter
+from pyonvifsrv.utils import parseSOAPString, getServiceNameFromOnvifNS, getMethodNameFromBody, decapitalize, envelopeHeader, envelopeFooter, errorReponse
+from pyonvifsrv.const import ERROR_TYPE
 
 logger = logging.getLogger(__name__)
 
@@ -144,7 +145,7 @@ class EventsService(ServiceBase):
     async def pullMessages(self, data):
         subscriptionId = data["urlParams"]["subscriptionId"]
         if subscriptionId not in self.subscriptions:
-            return ''
+            return errorReponse(ERROR_TYPE.INVALID_ARGS_VAL, "Subscription not found: " + subscriptionId)
 
         subscription = self.subscriptions[subscriptionId]
 
@@ -181,7 +182,7 @@ class EventsService(ServiceBase):
     def renew(self, data):
         subscriptionId = data["urlParams"]["subscriptionId"]
         if subscriptionId not in self.subscriptions:
-            return ''
+            return errorReponse(ERROR_TYPE.INVALID_ARGS_VAL, "Subscription not found: " + subscriptionId)
 
         subscription = self.subscriptions[subscriptionId]
 
@@ -212,7 +213,7 @@ class EventsService(ServiceBase):
                 <wsnt:UnsubscribeResponse></wsnt:UnsubscribeResponse>        
             '''
         else:
-            return ''
+            return errorReponse(ERROR_TYPE.INVALID_ARGS_VAL, "Subscription not found: " + subscriptionId)
 
     def getEventProperties(self, data):
         return '''
