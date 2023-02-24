@@ -41,6 +41,7 @@ So all credits concerning the docker setup belongs to them.
   `make run`
 
 Please note that the generated docker image uses a custom build of gstreamer and pulseaudio from this repository: https://github.com/nanosonde/pulsegst
+
 Building gstreamer and pulseaudio takes a long time. So building those is done in a separate dockerfile.
 
 ## Configuration
