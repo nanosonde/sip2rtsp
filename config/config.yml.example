@@ -6,6 +6,9 @@ logger:
   logs:
     sip2rtsp.baresip_ctrl: info
     sip2rtsp.app: info
+    tornado.access: warning
+    tornado.application: info
+    tornado.general: info
 
 # Optional: set environment variables
 environment_vars:

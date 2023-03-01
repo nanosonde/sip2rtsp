@@ -24,9 +24,6 @@ class OnvifServer:
             PtzService(self.context),
         ]
         self.context.services = self.services
-        logging.getLogger("tornado.access").setLevel(logging.WARNING)
-        logging.getLogger("tornado.application").setLevel(logging.INFO)
-        logging.getLogger("tornado.general").setLevel(logging.INFO)
 
     def getContext(self) -> Context:
         return self.context
