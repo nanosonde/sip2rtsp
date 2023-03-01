@@ -19,6 +19,8 @@ logger = logging.getLogger(__name__)
 class Sip2RtspApp:
     def __init__(self, aioloop, loop, config) -> None:
         self.ringCallback = None
+        self.pendingIncomingCall = False
+
         self.aioloop = aioloop
         self.loop = loop
         self.config = config
@@ -81,10 +83,12 @@ class Sip2RtspApp:
         # logger.debug("Event: " + str(data))
         if data["type"] == EVENT_TYPE.CALL_INCOMING:
             logger.info("Incoming call from {peeruri}".format(peeruri=data["peeruri"]))
+            self.pendingIncomingCall = True
             if self.ringCallback:
                 self.ringCallback(data["peeruri"])
         elif data["type"] == EVENT_TYPE.CALL_CLOSED:
             logger.info("Call closed from {peeruri}".format(peeruri=data["peeruri"]))
+            self.pendingIncomingCall = False
         elif data["type"] == EVENT_TYPE.CALL_ESTABLISHED:
             logger.info(
                 "Call established from {peeruri}".format(peeruri=data["peeruri"])
@@ -119,9 +123,14 @@ class Sip2RtspApp:
             if value == "www.onvif.org/ver20/backchannel":
 
                 async def dial():
-                    logger.info("ONVIF backchannel requested. Dialing...")
-                    await self.bs_ctrl.dial(self.config.sip.remote_uri)
-                    logger.info("Dialing done...")
+                    if  self.pendingIncomingCall:
+                        logger.info("ONVIF backchannel requested. Answering incoming call...")
+                        await self.bs_ctrl.accept()
+                        logger.info("Answering done...")
+                    else:
+                        logger.info("ONVIF backchannel requested. Dialing...")
+                        await self.bs_ctrl.dial(self.config.sip.remote_uri)
+                        logger.info("Dialing done...")
 
                 asyncio.run_coroutine_threadsafe(dial(), self.aioloop)
 
@@ -155,6 +164,7 @@ class Sip2RtspApp:
             logger.info("ONVIF backchannel TEARDOWN request. Hanging up...")
             await self.bs_ctrl.hangup()
             logger.info("Hanging up done...")
+            self.pendingIncomingCall = False
 
         asyncio.run_coroutine_threadsafe(hangup(), self.aioloop)
 
@@ -169,6 +179,7 @@ class Sip2RtspApp:
             logger.info("ONVIF backchannel connection was closed. Hanging up...")
             await self.bs_ctrl.hangup()
             logger.info("Hanging up done...")
+            self.pendingIncomingCall = False
 
         asyncio.run_coroutine_threadsafe(hangup(), self.aioloop)
 
