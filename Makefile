@@ -5,9 +5,9 @@ VERSION = 0.0.1
 IMAGE_REPO ?= ghcr.io/nanosonde/sip2rtsp
 CURRENT_UID := $(shell id -u)
 CURRENT_GID := $(shell id -g)
-PULSEGST_IMAGE = ghcr.io/nanosonde/pulsegst:main-60fc993
-PULSEGST_IMAGE_AMD64 = ghcr.io/nanosonde/pulsegst:main-fc3b544@sha256:e69b7f64c92e1c1459d491d39f69b08f1ee3b0b2cc49c14839c7d2b1e03eb519
-PULSEGST_IMAGE_ARM64 = ghcr.io/nanosonde/pulsegst:main-fc3b544@sha256:dece2d9fd7d3c676ffb59b6d54cf9ea62ddca8b420e3734598f8eec56974de7a
+PULSEGST_IMAGE = ghcr.io/nanosonde/pulsegst:main-825ccb8
+PULSEGST_IMAGE_AMD64 = ghcr.io/nanosonde/pulsegst:main-825ccb8@sha256:795fdbb071165d08a74fe347296ebda4400cda35cb3c92275e4e2aa744ebeecb
+PULSEGST_IMAGE_ARM64 = ghcr.io/nanosonde/pulsegst:main-825ccb8@sha256:0690e4f186c2112a5ea1be86f8ce29ebba36f8620114281f9f7ce2376c9a5872
 
 version:
 	echo 'VERSION = "$(VERSION)-$(COMMIT_HASH)"' > sip2rtsp/version.py
