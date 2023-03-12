@@ -3,14 +3,11 @@
 # https://askubuntu.com/questions/972516/debian-frontend-environment-variable
 ARG DEBIAN_FRONTEND=noninteractive
 
-ARG PULSEGST_IMAGE
-FROM $PULSEGST_IMAGE as pulsegstimage
+FROM debian:bookworm AS base
 
-FROM debian:11 AS base
+FROM --platform=linux/amd64 debian:bookworm AS base_amd64
 
-FROM --platform=linux/amd64 debian:11 AS base_amd64
-
-FROM debian:11-slim AS slim-base
+FROM debian:bookworm-slim AS slim-base
 
 FROM slim-base AS wget
 ARG DEBIAN_FRONTEND
@@ -36,7 +33,7 @@ RUN apt-get -qq update \
     gnupg \
     wget \
     && apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 9165938D90FDDD2E \
-    && echo "deb http://raspbian.raspberrypi.org/raspbian/ bullseye main contrib non-free rpi" | tee /etc/apt/sources.list.d/raspi.list \
+    && echo "deb http://raspbian.raspberrypi.org/raspbian/ bookworm main contrib non-free rpi" | tee /etc/apt/sources.list.d/raspi.list \
     && apt-get -qq update \
     && apt-get -qq install -y \
     python3 \
@@ -45,7 +42,7 @@ RUN apt-get -qq update \
     build-essential cmake git pkg-config libssl-dev
 
 RUN wget -q https://bootstrap.pypa.io/get-pip.py -O get-pip.py \
-    && python3 get-pip.py "pip"
+    && python3 get-pip.py "pip" --break-system-packages
 
 RUN if [ "${TARGETARCH}" = "arm" ]; \
     then echo "[global]" > /etc/pip.conf \
@@ -53,7 +50,7 @@ RUN if [ "${TARGETARCH}" = "arm" ]; \
     fi
 
 COPY requirements.txt /requirements.txt
-RUN pip3 install -r requirements.txt
+RUN pip3 install --break-system-packages -r requirements.txt
 
 COPY requirements-wheels.txt /requirements-wheels.txt
 RUN pip3 wheel --wheel-dir=/wheels -r requirements-wheels.txt
@@ -61,8 +58,8 @@ RUN pip3 wheel --wheel-dir=/wheels -r requirements-wheels.txt
 # Collect deps in a single layer
 FROM scratch AS deps-rootfs
 
-COPY --from=pulsegstimage /usr/local/pulseaudio/ /usr/local/pulseaudio/
-COPY --from=pulsegstimage /usr/local/gstreamer/ /usr/local/gstreamer/
+#COPY --from=pulsegstimage /usr/local/pulseaudio/ /usr/local/pulseaudio/
+#COPY --from=pulsegstimage /usr/local/gstreamer/ /usr/local/gstreamer/
 COPY --from=s6-overlay /rootfs/ /
 COPY docker/rootfs/ /
 
@@ -75,15 +72,15 @@ ARG DEBIAN_FRONTEND
 # http://stackoverflow.com/questions/48162574/ddg#49462622
 ARG APT_KEY_DONT_WARN_ON_DANGEROUS_USAGE=DontWarn
 
-ENV PATH="/usr/local/pulseaudio/bin:/usr/local/gstreamer/bin:${PATH}"
-ENV GI_TYPELIB_PATH="/usr/local/gstreamer/lib/x86_64-linux-gnu/girepository-1.0/"
+#ENV PATH="/usr/local/pulseaudio/bin:/usr/local/gstreamer/bin:${PATH}"
+#ENV GI_TYPELIB_PATH="/usr/local/gstreamer/lib/x86_64-linux-gnu/girepository-1.0/"
 
 # Install dependencies
 RUN --mount=type=bind,source=docker/install_deps.sh,target=/deps/install_deps.sh \
     /deps/install_deps.sh
 
 RUN --mount=type=bind,from=wheels,source=/wheels,target=/deps/wheels \
-    pip3 install -U /deps/wheels/*.whl
+    pip3 install --break-system-packages -U /deps/wheels/*.whl
 
 COPY --from=deps-rootfs / /
 
