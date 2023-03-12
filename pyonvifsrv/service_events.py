@@ -74,11 +74,25 @@ class PullPointSubscription():
 
     def addMessage(self, message: Message):
         self.messages.append(message)
-        self.future.set_result(True)
+        if not self.future.done:
+            self.future.set_result(True)
 
-    def reNew(self, expirationTime: datetime):
+    async def reNew(self, expirationTime: datetime):
         self.expirationTime = expirationTime
+        self.future.cancel()
+        try:
+            await asyncio.wait(self.future)
+        except asyncio.CancelledError:
+            pass
         self.future = asyncio.get_running_loop().create_future()
+
+    async def wait_for(self, timeoutInSeconds: int):
+        try:
+            await asyncio.wait_for(self.future, timeoutInSeconds)
+        except asyncio.TimeoutError:
+            pass
+        except asyncio.CancelledError:
+            pass
 
 class EventsService(ServiceBase):
     serviceName = "events"
@@ -165,12 +179,7 @@ class EventsService(ServiceBase):
 
         # sleep(timeoutInSeconds)
         #await asyncio.sleep(timeoutInSeconds)
-        try:
-            await asyncio.wait_for(subscription.future, timeoutInSeconds)
-        except asyncio.TimeoutError:
-            pass
-        except asyncio.CancelledError:
-            pass
+        await subscription.wait_for(timeoutInSeconds)
 
         return '''
             <tev:PullMessagesResponse>
