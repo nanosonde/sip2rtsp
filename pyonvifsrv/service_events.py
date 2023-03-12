@@ -81,7 +81,7 @@ class PullPointSubscription():
         self.expirationTime = expirationTime
         self.future.cancel()
         try:
-            await asyncio.wait(self.future)
+            await self.future
         except asyncio.CancelledError:
             pass
         self.future = asyncio.get_running_loop().create_future()
@@ -191,7 +191,7 @@ class EventsService(ServiceBase):
                    terminationTime=terminationTime.isoformat(sep="T", timespec="seconds").replace("+00:00", "Z"),
                    messagesXml=messagesXml)
 
-    def renew(self, data):
+    async def renew(self, data):
         subscriptionId = data["urlParams"]["subscriptionId"]
         if subscriptionId not in self.subscriptions:
             return errorReponse(ERROR_TYPE.INVALID_ARGS_VAL, "Subscription not found: " + subscriptionId)
@@ -203,7 +203,7 @@ class EventsService(ServiceBase):
         currentTime: datetime = datetime.datetime.now(datetime.timezone.utc)
         terminationTime: datetime = currentTime + datetime.timedelta(seconds=terminationTimeInSeconds)
 
-        subscription.reNew(terminationTime)
+        await subscription.reNew(terminationTime)
 
         logger.debug("Renew PullPointSubscription {subscriptionId}: new expirationTime: {terminationTime}"
                      .format(subscriptionId=subscriptionId,
