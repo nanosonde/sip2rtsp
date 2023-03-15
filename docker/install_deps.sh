@@ -29,7 +29,9 @@ if [[ "${TARGETARCH}" == "arm" ]]; then
     gpg --no-default-keyring --keyring /usr/share/keyrings/raspbian.gpg --keyserver keyserver.ubuntu.com --recv-keys 9165938D90FDDD2E
     echo "deb [signed-by=/usr/share/keyrings/raspbian.gpg] http://raspbian.raspberrypi.org/raspbian/ bookworm main contrib non-free rpi" | tee /etc/apt/sources.list.d/raspi.list
     apt-get -qq update
-    apt-get -qq install --no-install-recommends --no-install-suggests -y ffmpeg
+    apt-get -qq install --no-install-recommends --no-install-suggests -y \
+        ffmpeg \
+        gstreamer1.0-omx-generic
 fi
 
 # ffmpeg -> arm64
@@ -51,10 +53,9 @@ apt-get -qq install --no-install-recommends --no-install-suggests -y \
     baresip-x11 \
     python3-gi \
     libsoup2.4-1 \
-    pulseaudio \
-    pulseaudio-utils \
     gir1.2-gst-rtsp-server-1.0 \
     gir1.2-gstreamer-1.0 \
+    gir1.2-gst-plugins-bad-1.0 \
     gstreamer1.0-plugins-bad \
     gstreamer1.0-plugins-base \
     gstreamer1.0-plugins-good \
@@ -62,8 +63,8 @@ apt-get -qq install --no-install-recommends --no-install-suggests -y \
     gstreamer1.0-plugins-rtp \
     gstreamer1.0-rtsp \
     gstreamer1.0-tools \
-    gstreamer1.0-pulseaudio \
-    gstreamer1.0-x
+    gstreamer1.0-x \
+    python3-gst-1.0
 
 # Clean up
 

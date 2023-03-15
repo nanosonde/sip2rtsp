@@ -20,4 +20,4 @@ rm -rf /tmp/pulse-* ~/.pulse/*-runtime
 
 # Replace the bash process with the pulseaudio daemon process, redirecting stderr to stdout
 exec 2>&1
-exec /usr/bin/pulseaudio --system --log-level=1 --log-target=stderr --disable-shm=true --disallow-exit=true --disallow-module-loading --exit-idle-time=-1 -v
+exec /usr/local/pulseaudio/bin/pulseaudio --system --log-level=1 --log-target=stderr --disable-shm=true --disallow-exit=true --disallow-module-loading --exit-idle-time=-1 -v
