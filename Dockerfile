@@ -16,13 +16,13 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 WORKDIR /rootfs
 
-FROM base AS pulseaudio
-ARG DEBIAN_FRONTEND
+# FROM base AS pulseaudio
+# ARG DEBIAN_FRONTEND
 
-# bind /var/cache/apt to tmpfs to speed up pulseaudio build
-RUN --mount=type=tmpfs,target=/tmp --mount=type=tmpfs,target=/var/cache/apt \
-    --mount=type=bind,source=docker/build_pulseaudio.sh,target=/deps/build_pulseaudio.sh \
-    /deps/build_pulseaudio.sh
+# # bind /var/cache/apt to tmpfs to speed up pulseaudio build
+# RUN --mount=type=tmpfs,target=/tmp --mount=type=tmpfs,target=/var/cache/apt \
+#     --mount=type=bind,source=docker/build_pulseaudio.sh,target=/deps/build_pulseaudio.sh \
+#     /deps/build_pulseaudio.sh
 
 FROM wget AS s6-overlay
 ARG TARGETARCH
@@ -66,7 +66,7 @@ RUN pip3 wheel --wheel-dir=/wheels -r requirements-wheels.txt
 # Collect deps in a single layer
 FROM scratch AS deps-rootfs
 
-COPY --from=pulseaudio /usr/local/pulseaudio/ /usr/local/pulseaudio/
+#COPY --from=pulseaudio /usr/local/pulseaudio/ /usr/local/pulseaudio/
 #COPY --from=pulsegstimage /usr/local/gstreamer/ /usr/local/gstreamer/
 COPY --from=s6-overlay /rootfs/ /
 COPY docker/rootfs/ /
@@ -80,7 +80,7 @@ ARG DEBIAN_FRONTEND
 # http://stackoverflow.com/questions/48162574/ddg#49462622
 ARG APT_KEY_DONT_WARN_ON_DANGEROUS_USAGE=DontWarn
 
-ENV PATH="/usr/local/pulseaudio/bin:${PATH}"
+#ENV PATH="/usr/local/pulseaudio/bin:${PATH}"
 #ENV PATH="/usr/local/pulseaudio/bin:/usr/local/gstreamer/bin:${PATH}"
 #ENV GI_TYPELIB_PATH="/usr/local/gstreamer/lib/x86_64-linux-gnu/girepository-1.0/"
 

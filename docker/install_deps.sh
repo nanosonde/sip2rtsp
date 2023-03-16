@@ -53,6 +53,8 @@ apt-get -qq install --no-install-recommends --no-install-suggests -y \
     baresip-x11 \
     python3-gi \
     libsoup2.4-1 \
+    pulseaudio \
+    pulseaudio-utils \
     gir1.2-gst-rtsp-server-1.0 \
     gir1.2-gstreamer-1.0 \
     gir1.2-gst-plugins-bad-1.0 \
