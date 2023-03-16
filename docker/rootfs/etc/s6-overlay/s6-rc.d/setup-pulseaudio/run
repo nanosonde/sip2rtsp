@@ -26,13 +26,6 @@ echo "daemon-binary = /bin/true" >> /usr/local/pulseaudio/etc/pulse/client.conf
 cp -av /usr/local/pulseaudio/etc/pulse/client.conf /etc/pulse/client.conf
 echo "Done.";
 
-echo "Modifying pulseaudio daemon config";
-echo "resample-method = trivial" >> /usr/local/pulseaudio/etc/pulse/daemon.conf
-echo "default-sample-format = s16le" >> /usr/local/pulseaudio/etc/pulse/daemon.conf
-echo "default-sample-rate = 8000 " >> /usr/local/pulseaudio/etc/pulse/daemon.conf
-cp -av /usr/local/pulseaudio/etc/pulse/daemon.conf /etc/pulse/daemon.conf
-echo "Done.";
-
 echo "Overwriting the default system mode script";
 cp -av /etc/pulse/system.pa /usr/local/pulseaudio/etc/pulse/system.pa
 echo "Done.";
