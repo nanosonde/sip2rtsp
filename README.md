@@ -40,9 +40,10 @@ So all credits concerning the docker setup belongs to them.
 
   `make run`
 
-Please note that the generated docker image uses a custom build of gstreamer and pulseaudio from this repository: https://github.com/nanosonde/pulsegst
+~~Please note that the generated docker image uses a custom build of gstreamer and pulseaudio from this repository: https://github.com/nanosonde/pulsegst~~
+Recent versions (from 03/17/2023) of sip2rtsp use Debian Bookworm which already includes latest version of gstreamer and pulseaudio.
 
-Building gstreamer and pulseaudio takes a long time. So building those is done in a separate dockerfile.
+~~Building gstreamer and pulseaudio takes a long time. So building those is done in a separate dockerfile.~~
 
 ## Configuration
 
