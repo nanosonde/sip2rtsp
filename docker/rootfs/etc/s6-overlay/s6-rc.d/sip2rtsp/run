@@ -11,6 +11,9 @@ echo "[INFO] Starting sip2rtsp..." >&2
 
 cd /opt/sip2rtsp || echo "[ERROR] Failed to change working directory to /opt/sip2rtsp" >&2
 
+# Enable gstreamer debug output of gst-rtsp-server
+#export GST_DEBUG=3
+
 # Replace the bash process with the sip2rtsp process, redirecting stderr to stdout
 exec 2>&1
 exec python3 -u -m sip2rtsp
