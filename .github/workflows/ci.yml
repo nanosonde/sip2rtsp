@@ -12,8 +12,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  PYTHON_VERSION: 3.9
-  PULSEGST_IMAGE: ghcr.io/nanosonde/pulsegst:main-fe22165
+  PYTHON_VERSION: 3.11
 
 jobs:
   multi_arch_build:
@@ -43,11 +42,8 @@ jobs:
         with:
           context: .
           push: true
-          #platforms: linux/amd64,linux/arm64,linux/arm/v7
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/amd64,linux/arm64,linux/arm/v7
           target: sip2rtsp
-          build-args: |
-            PULSEGST_IMAGE=${{ env.PULSEGST_IMAGE}}
           tags: |
             ghcr.io/${{ steps.lowercaseRepo.outputs.lowercase }}:${{ github.ref_name }}-${{ env.SHORT_SHA }}
           cache-from: type=gha
