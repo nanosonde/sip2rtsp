@@ -10,7 +10,7 @@ version:
 	echo 'VERSION = "$(VERSION)-$(COMMIT_HASH)"' > sip2rtsp/version.py
 
 local: version
-	docker buildx build --build-arg --target=sip2rtsp --tag sip2rtsp:latest .
+	docker buildx build --target=sip2rtsp --tag sip2rtsp:latest .
 
 amd64:
 	docker buildx build --platform linux/amd64 --target=sip2rtsp --tag $(IMAGE_REPO):$(VERSION)-$(COMMIT_HASH) .
