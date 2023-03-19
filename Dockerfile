@@ -119,7 +119,7 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 RUN --mount=type=bind,source=./requirements-dev.txt,target=/workspace/sip2rtsp/requirements-dev.txt \
-    pip3 install -r requirements-dev.txt
+    pip3 install --break-system-packages -r requirements-dev.txt
 
 CMD ["sleep", "infinity"]
 
