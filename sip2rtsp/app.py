@@ -46,7 +46,7 @@ class Sip2RtspApp:
         self.server.get_mount_points().add_factory(
             self.config.rtsp_server.mount_point, self.factory
         )
-        self.server.service = str(self.config.rtsp_server.port)
+        self.server.set_service(str(self.config.rtsp_server.port))
 
         # Attach gstreamer RTSP server to our GLib event loop
         self.server.attach(self.loop.get_context())
@@ -66,6 +66,7 @@ class Sip2RtspApp:
 
     async def start(self) -> None:
         logger.info(f"Starting SIP2RTSP ({VERSION})")
+        logger.info(f"GST RTSP server is listening on {self.server.get_address()}:{self.server.get_service()}")
         try:
             self.set_environment_vars()
         except Exception as e:
