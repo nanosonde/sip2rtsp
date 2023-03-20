@@ -78,7 +78,8 @@ rtp_stats		no
 #------------------------------------------------------------------------------
 # Modules
 
-module_path		/usr/lib/baresip/modules
+# baresip is linked statically
+#module_path		/usr/lib/baresip/modules
 
 # UI Modules
 #module			stdio.so
@@ -175,7 +176,7 @@ module_app		menu.so
 #module_app		syslog.so
 #module_app		mqtt.so
 module_app		ctrl_tcp.so
-#module_app		ctrl_dbus.so # later versions of baresip support module ctrl_dbus.so
+module_app		ctrl_dbus.so
 #module_app		httpreq.so
 #module_app		multicast.so
 #module_app		netroam.so
@@ -252,7 +253,7 @@ video_selfview		window # {window,pip}
 #avcodec_hwaccel	vaapi
 
 # ctrl_dbus
-#ctrl_dbus_use	system		# system, session
+ctrl_dbus_use	system		# system, session
 
 # mqtt
 #mqtt_broker_host	sollentuna.example.com
