@@ -76,8 +76,17 @@ class Sip2RtspApp:
         await self.bs_ctrl.start()
 
     async def stop(self) -> None:
-        logger.info(f"Hanging up...")
-        await self.bs_ctrl.hangup()
+        # Try to hang up any active calls gracefully
+        callstat = await self.bs_ctrl.callstat()
+        if callstat:
+            if "(no active calls)" not in callstat:
+                logger.info(f"Hanging up...")
+                await self.bs_ctrl.hangup()
+                logger.info(f"Hanging up done...")
+        else:
+            # If callstat() fails, we assume there is an active call
+            # This might fail too...
+            await self.bs_ctrl.hangup()
         logger.info(f"Stopped SIP2RTSP ({VERSION})")
 
     def event_handler(self, data):

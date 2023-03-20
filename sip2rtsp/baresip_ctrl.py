@@ -51,7 +51,14 @@ class BaresipControl:
         future = asyncio.Future()
         self.pending_requests[token] = future
         self._send_command(command)
-        return await asyncio.wait_for(future, timeout=self.timeout)
+        try:
+            result = await asyncio.wait_for(future, timeout=self.timeout)
+        except asyncio.TimeoutError:
+            result = None
+        except Exception as e:
+            logger.warn(f"Error while getting call statistics: {e}")
+            result = None
+        return result
 
     async def listcalls(self):
         """List active calls"""
@@ -60,7 +67,14 @@ class BaresipControl:
         future = asyncio.Future()
         self.pending_requests[token] = future
         self._send_command(command)
-        return await asyncio.wait_for(future, timeout=self.timeout)
+        try:
+            result = await asyncio.wait_for(future, timeout=self.timeout)
+        except asyncio.TimeoutError:
+            result = None
+        except Exception as e:
+            logger.warn(f"Error while listing calls: {e}")
+            result = None
+        return result
 
     async def dial(self, sip_address):
         """Initiate a call to the specified SIP address"""
@@ -69,7 +83,14 @@ class BaresipControl:
         future = asyncio.Future()
         self.pending_requests[token] = future
         self._send_command(command)
-        return await asyncio.wait_for(future, timeout=self.timeout)
+        try:
+            result = await asyncio.wait_for(future, timeout=self.timeout)
+        except asyncio.TimeoutError:
+            result = None
+        except Exception as e:
+            logger.warn(f"Error while dialing: {e}")
+            result = None
+        return result
 
     async def hangup(self):
         """Hang up the current call"""
@@ -78,7 +99,14 @@ class BaresipControl:
         future = asyncio.Future()
         self.pending_requests[token] = future
         self._send_command(command)
-        return await asyncio.wait_for(future, timeout=self.timeout)
+        try:
+            result = await asyncio.wait_for(future, timeout=self.timeout)
+        except asyncio.TimeoutError:
+            result = None
+        except Exception as e:
+            logger.warn(f"Error while hanging up call: {e}")
+            result = None
+        return result
 
     async def accept(self):
         """Accept the incoming call"""
@@ -87,7 +115,14 @@ class BaresipControl:
         future = asyncio.Future()
         self.pending_requests[token] = future
         self._send_command(command)
-        return await asyncio.wait_for(future, timeout=self.timeout)
+        try:
+            result = await asyncio.wait_for(future, timeout=self.timeout)
+        except asyncio.TimeoutError:
+            result = None
+        except Exception as e:
+            logger.warn(f"Error while accepting call: {e}")
+            result = None
+        return result
 
     def _send_command(self, command):
         """Send a command to the Baresip instance"""
