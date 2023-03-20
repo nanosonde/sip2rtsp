@@ -16,7 +16,7 @@ environment_vars:
 
 rtsp_server:
   # Note: if you change the port and/or the mount point the streamURI must also be adjusted accordingly. See below.
-  port: 8554
+  port: 19554
   mount_point: /sip2rtsp-cam
 
   # === VIDEOTESTSRC/AUDIOTESTSRC
@@ -56,7 +56,7 @@ onvif:
   listen_server_port: 10101
 
   # Just used in the generated ONVIF responses to generate the required ONVIF service address URLs.
-  advertised_server_address: 10.10.10.70
+  advertised_server_address: <YOUR_DOCKER_HOST_IP>
   advertised_server_port: 10101
 
   # Just used in the generated ONVIF responses
@@ -70,10 +70,10 @@ onvif:
     location: sip2rtsp-location
 
     # Currently sip2rtsp does not support generating a snapshot from a video stream. So provide the snapshot URI of the camera here.
-    snapshotUri: http://10.10.10.10:54321/snapshot
+    snapshotUri: http://<YOUR_CAMERA_IP>:54321/snapshot
 
     # The streamURI must be adjusted if the port and/or mount_point from the rtsp_server config were changed. This points to our local gstreamer RTSP server.
-    streamUri: rtsp://10.10.10.70:8554/sip2rtsp-cam
+    streamUri: rtsp://<YOUR_DOCKER_HOST_IP:19554/sip2rtsp-cam
     
     # Details are just used in the ONVIF responses and not to scale the image or any framerate conversion. If this is desired, adjust the launch_string of the RTSP server accordingly. See above.
     width: 1920
