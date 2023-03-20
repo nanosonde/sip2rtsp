@@ -4,13 +4,13 @@
 
 set -o errexit -o nounset -o pipefail
 
-echo "Creating user pulse and group pulse-access";
-adduser --home /var/run/pulse --disabled-password --disabled-login --gecos '' pulse \
-&& addgroup pulse-access \
-&& adduser pulse pulse-access \
-&& adduser root pulse \
-&& adduser root pulse-access
-echo "Done.";
+#echo "Creating user pulse and group pulse-access";
+#adduser --home /var/run/pulse --disabled-password --disabled-login --gecos '' pulse \
+#&& addgroup pulse-access \
+#&& adduser pulse pulse-access \
+#&& adduser root pulse \
+#&& adduser root pulse-access
+#echo "Done.";
 
 echo "Setting up pulseaudio runtime path";
 mkdir -p /var/lib/pulse
