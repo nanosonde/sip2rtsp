@@ -47,14 +47,11 @@ fi
 apt-get -qq install --no-install-recommends --no-install-suggests -y \
     libltdl7 \
     libtdb1 \
-    baresip \
-    baresip-core \
-    baresip-gstreamer \
-    baresip-x11 \
     python3-gi \
     libsoup2.4-1 \
     pulseaudio \
     pulseaudio-utils \
+    libopus0 ca-certificates openssl libasound2 libmosquitto1 libspandsp2 libpulse0 pulseaudio libopenaptx0 libportaudio2 \
     gir1.2-gst-rtsp-server-1.0 \
     gir1.2-gstreamer-1.0 \
     gir1.2-gst-plugins-bad-1.0 \
