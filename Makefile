@@ -25,7 +25,10 @@ build: version amd64 arm64 armv7
 	docker buildx build --platform linux/arm/v7,linux/arm64,linux/amd64 --target=sip2rtsp --tag $(IMAGE_REPO):$(VERSION)-$(COMMIT_HASH) .
 
 push: build
-	docker buildx build --push --platform linux/arm/v7,linux/arm64,linux/amd64 --target=sip2rtsp --tag $(IMAGE_REPO):${GITHUB_REF_NAME}-$(COMMIT_HASH) .
+	docker buildx build --push --platform linux/arm/v7,linux/arm64,linux/amd64 --target=sip2rtsp --tag $(IMAGE_REPO):${VERSION}-$(COMMIT_HASH) .
+
+push_docker: build
+	docker buildx build --push --platform linux/arm/v7,linux/arm64,linux/amd64 --target=sip2rtsp --tag nanosonde/sip2rtsp:$(VERSION)-$(COMMIT_HASH) --tag nanosonde/sip2rtsp:latest .
 
 run: local
 	docker run --rm --network host --volume=${PWD}/config/config.yml:/config/config.yml --name sip2rtsp sip2rtsp:latest
