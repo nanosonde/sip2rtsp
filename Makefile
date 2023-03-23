@@ -12,22 +12,22 @@ version:
 local: version
 	docker buildx build --target=sip2rtsp --tag sip2rtsp:latest --load .
 
-amd64:
+amd64: version
 	docker buildx build --platform linux/amd64 --target=sip2rtsp --tag $(IMAGE_REPO):$(VERSION)-$(COMMIT_HASH) .
 
-arm64:
+arm64: version
 	docker buildx build --platform linux/arm64 --target=sip2rtsp --tag $(IMAGE_REPO):$(VERSION)-$(COMMIT_HASH) .
 
-armv7:
+armv7: version
 	docker buildx build --platform linux/arm/v7 --target=sip2rtsp --tag $(IMAGE_REPO):$(VERSION)-$(COMMIT_HASH) .
 
-build: version amd64 arm64 armv7
+build: version
 	docker buildx build --platform linux/arm/v7,linux/arm64,linux/amd64 --target=sip2rtsp --tag $(IMAGE_REPO):$(VERSION)-$(COMMIT_HASH) .
 
-push: build
-	docker buildx build --push --platform linux/arm/v7,linux/arm64,linux/amd64 --target=sip2rtsp --tag $(IMAGE_REPO):${VERSION}-$(COMMIT_HASH) .
+push:
+	docker buildx build --push --platform linux/arm/v7,linux/arm64,linux/amd64 --target=sip2rtsp --tag $(IMAGE_REPO):${VERSION}-$(COMMIT_HASH) --tag $(IMAGE_REPO):latest .
 
-push_docker: build
+push_docker:
 	docker buildx build --push --platform linux/arm/v7,linux/arm64,linux/amd64 --target=sip2rtsp --tag nanosonde/sip2rtsp:$(VERSION)-$(COMMIT_HASH) --tag nanosonde/sip2rtsp:latest .
 
 run: local

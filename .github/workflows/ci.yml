@@ -3,7 +3,6 @@ name: CI
 on:
   push:
     branches:
-      - dev
       - main
 
 # only run the latest commit to avoid cache overwrites
@@ -49,7 +48,7 @@ jobs:
       - name: Create short sha
         run: echo "SHORT_SHA=${GITHUB_SHA::7}" >> $GITHUB_ENV
 
-      - name: Build and push
+      - name: Build and push image to Docker Hub
         uses: docker/build-push-action@v4
         with:
           context: .
@@ -68,3 +67,11 @@ jobs:
             --tag ghcr.io/${{ steps.lowercaseRepo.outputs.lowercase }}:latest \
             --tag ghcr.io/${{ steps.lowercaseRepo.outputs.lowercase }}:${{ github.ref_name }}-${{ env.SHORT_SHA }} \
             ${{ steps.lowercaseRepo.outputs.lowercase }}:latest
+
+      - name: Remove all GHCR packages except the latest 3
+        uses: actions/delete-package-versions@v4
+        with:
+          package-name: 'sip2rtsp'
+          package-type: 'container'
+          min-versions-to-keep: 3
+          token: ${{ secrets.PAT }}

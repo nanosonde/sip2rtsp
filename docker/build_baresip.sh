@@ -34,11 +34,13 @@ mkdir -p /usr/local/baresip
 # Build and install libre (with librem)
 cd /tmp/libre
 cmake -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/
-cmake --build build -j
+# IMPORTANT: Build libre with only one thread, otherwise the build will fail due to memory exhaustion during qemu emulation
+cmake --build build -j 1
 cmake --install build --prefix dist && cp -a dist/* /usr/ && cp -a dist/* /usr/local/baresip/
 
 # Build and install baresip
 cd /tmp/baresip
 cmake -B build -DSTATIC=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/
-cmake --build build -j
+# IMPORTANT: Build baresip with only one thread, otherwise the build will fail due to memory exhaustion during qemu emulation
+cmake --build build -j 1
 cmake --install build --prefix dist && cp -a dist/* /usr/ && cp -a dist/* /usr/local/baresip/
