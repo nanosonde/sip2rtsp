@@ -1,8 +1,10 @@
 default_target: local
 
 COMMIT_HASH := $(shell git log -1 --pretty=format:"%h"|tail -1)
+REF_NAME := $(shell git symbolic-ref --short HEAD)
 VERSION = 0.0.1
-IMAGE_REPO ?= ghcr.io/nanosonde/sip2rtsp
+GHCR_IMAGE_REPO ?= ghcr.io/nanosonde/sip2rtsp
+DOCKERHUB_IMAGE_REPO ?= nanosonde/sip2rtsp
 CURRENT_UID := $(shell id -u)
 CURRENT_GID := $(shell id -g)
 
@@ -13,22 +15,22 @@ local: version
 	docker buildx build --target=sip2rtsp --tag sip2rtsp:latest --load .
 
 amd64: version
-	docker buildx build --platform linux/amd64 --target=sip2rtsp --tag $(IMAGE_REPO):$(VERSION)-$(COMMIT_HASH) .
+	docker buildx build --platform linux/amd64 --target=sip2rtsp --tag $(GHCR_IMAGE_REPO):$(VERSION)-$(COMMIT_HASH) .
 
 arm64: version
-	docker buildx build --platform linux/arm64 --target=sip2rtsp --tag $(IMAGE_REPO):$(VERSION)-$(COMMIT_HASH) .
+	docker buildx build --platform linux/arm64 --target=sip2rtsp --tag $(GHCR_IMAGE_REPO):$(VERSION)-$(COMMIT_HASH) .
 
 armv7: version
-	docker buildx build --platform linux/arm/v7 --target=sip2rtsp --tag $(IMAGE_REPO):$(VERSION)-$(COMMIT_HASH) .
+	docker buildx build --platform linux/arm/v7 --target=sip2rtsp --tag $(GHCR_IMAGE_REPO):$(VERSION)-$(COMMIT_HASH) .
 
 build: version
-	docker buildx build --platform linux/arm/v7,linux/arm64,linux/amd64 --target=sip2rtsp --tag $(IMAGE_REPO):$(VERSION)-$(COMMIT_HASH) .
+	docker buildx build --platform linux/arm/v7,linux/arm64,linux/amd64 --target=sip2rtsp --tag $(GHCR_IMAGE_REPO):$(VERSION)-$(COMMIT_HASH) .
 
-push:
-	docker buildx build --push --platform linux/arm/v7,linux/arm64,linux/amd64 --target=sip2rtsp --tag $(IMAGE_REPO):${VERSION}-$(COMMIT_HASH) --tag $(IMAGE_REPO):latest .
+push_ghcr:
+	docker buildx build --push --platform linux/arm/v7,linux/arm64,linux/amd64 --target=sip2rtsp --tag $(GHCR_IMAGE_REPO):${REF_NAME}-$(COMMIT_HASH) .
 
 push_docker:
-	docker buildx build --push --platform linux/arm/v7,linux/arm64,linux/amd64 --target=sip2rtsp --tag nanosonde/sip2rtsp:$(VERSION)-$(COMMIT_HASH) --tag nanosonde/sip2rtsp:latest .
+	docker buildx build --push --platform linux/arm/v7,linux/arm64,linux/amd64 --target=sip2rtsp --tag $(DOCKERHUB_IMAGE_REPO):$(REF_NAME)-$(COMMIT_HASH) .
 
 run: local
 	docker run --rm --network host --volume=${PWD}/config/config.yml:/config/config.yml --name sip2rtsp sip2rtsp:latest
