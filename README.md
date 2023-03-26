@@ -40,10 +40,23 @@ So all credits concerning the docker setup belongs to them.
 
   `make run`
 
+4. Once the container has started, a new folder /config/baresip will be created.
+   It contains two subfolders:
+   * /config/baresip/default
+   * /config/bareip/custom
+
+  The container will always overwrite the default folder on container startup. If you want to change any settings, e.g. to create a SIP account in 
+  the `acccounts` file. You can copy the file from the default folder to the custom folder and edit it as required.
+  Upon next startup the new custom config file will be used.
+  This way you can customize baresip to your own needs.
+  
+  Watch out for comments in the `config` file of baresip! Some things must not be changed to make the whole container logic work together!
+
 ~~Please note that the generated docker image uses a custom build of gstreamer and pulseaudio from this repository: https://github.com/nanosonde/pulsegst~~
-Recent versions (from 03/17/2023) of sip2rtsp use Debian Bookworm which already includes latest version of gstreamer and pulseaudio.
 
 ~~Building gstreamer and pulseaudio takes a long time. So building those is done in a separate dockerfile.~~
+
+**Recent versions (from 03/17/2023) of sip2rtsp use Debian Bookworm which already includes latest version of gstreamer and pulseaudio.**
 
 ## Configuration
 
@@ -53,7 +66,7 @@ See the comments provided in [config/config.yaml.example](https://github.com/nan
 When the docker container is running in host networking mode, it will use the following ports (default config):
 * 4444(TCP): Baresip [TCP control interface using netstring (JSON)](https://github.com/baresip/baresip/blob/main/modules/ctrl_tcp/ctrl_tcp.c)
 * 8000(TCP): Baresip HTTP control interface
-* 8554(TCP): gstreamer ONVIF RTSP server (Python3 script with gstreamer Python bindings)
+* 19554(TCP): gstreamer ONVIF RTSP server (Python3 script with gstreamer Python bindings)
 * 10101(TCP): ONVIF SOAP HTTP Port (Python3 script)
 
 ## TODO
