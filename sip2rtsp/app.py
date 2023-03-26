@@ -169,14 +169,14 @@ class Sip2RtspApp:
         res, value = reqmsg.get_header(GstRtsp.RTSPHeaderField.REQUIRE, 0)
         if res == GstRtsp.RTSPResult.OK:
             logger.debug("TEARDOWN request header: Require: {value}".format(value=value))
+            if value == "www.onvif.org/ver20/backchannel":
+                async def hangup():
+                    logger.info("ONVIF backchannel TEARDOWN request. Hanging up...")
+                    await self.bs_ctrl.hangup()
+                    logger.info("Hanging up done...")
+                    self.pendingIncomingCall = False
 
-        async def hangup():
-            logger.info("ONVIF backchannel TEARDOWN request. Hanging up...")
-            await self.bs_ctrl.hangup()
-            logger.info("Hanging up done...")
-            self.pendingIncomingCall = False
-
-        asyncio.run_coroutine_threadsafe(hangup(), self.aioloop)
+                asyncio.run_coroutine_threadsafe(hangup(), self.aioloop)
 
     def client_closed(self, client):
         logger.debug(
@@ -186,9 +186,19 @@ class Sip2RtspApp:
         )
 
         async def hangup():
-            logger.info("ONVIF backchannel connection was closed. Hanging up...")
-            await self.bs_ctrl.hangup()
-            logger.info("Hanging up done...")
+            logger.info("RTSP client connection connection was closed.")
+            # Try to hang up any active calls gracefully
+            callstat = await self.bs_ctrl.callstat()
+            if callstat:
+                if "(no active calls)" not in callstat:
+                    logger.info(f"Hanging up...")
+                    await self.bs_ctrl.hangup()
+                    logger.info(f"Hanging up done...")
+            else:
+                # If callstat() fails, we assume there is an active call
+                # This might fail too...
+                await self.bs_ctrl.hangup()
+
             self.pendingIncomingCall = False
 
         asyncio.run_coroutine_threadsafe(hangup(), self.aioloop)
