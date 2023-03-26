@@ -24,10 +24,16 @@ rtsp_server:
   # Audio is taken from the audiotestsrc. Encoded to PCM ulaw always. 
   # videotestsrc is-live=true ! video/x-raw,format=I420,width=1280,height=720,framerate=15/1 ! x264enc bitrate=2000 speed-preset=superfast tune=zerolatency key-int-max=60 ! rtph264pay config-interval=1 name=pay0 pt=96 audiotestsrc is-live=true ! mulawenc ! rtppcmupay name=pay1
 
-  # === RTSP camera as input for video and audio (or baresip for audio or both mixed)
+  # === RTSP camera as input for video (codec supported by decodebin) and audio
   # Example launch string for the gstreamer RTSP server to connect to a RTSP camera for the video stream. Transcoded to H264 always.
   # Audio is taken from the RTSP camera. Transcoded to OPUS always. Could also use the baresip speaker named "BaresipSpeakerInput" instead or mix both using audiomixer element
-  # rtspsrc location=rtsp://10.10.10.10:8554/gartentor_h264_ext name=rtspsrc ! decodebin ! videoconvert ! videoscale ! videorate ! video/x-raw,format=I420,width=1280,height=720,framerate=15/1 ! x264enc bitrate=2000 speed-preset=superfast tune=zerolatency key-int-max=60 ! rtph264pay config-interval=1 name=pay0 pt=96 rtspsrc. ! decodebin ! audioconvert ! audioresample ! audio/x-raw ! opusenc ! rtpopuspay name=pay1"         pulsesrc device=\"BaresipSpeakerInput\
+  # rtspsrc location=rtsp://10.10.10.10:8554/gartentor_h264_ext name=rtspsrc ! decodebin ! videoconvert ! videoscale ! videorate ! video/x-raw,format=I420,width=1280,height=720,framerate=15/1 ! x264enc bitrate=2000 speed-preset=superfast tune=zerolatency key-int-max=60 ! rtph264pay config-interval=1 name=pay0 pt=96 rtspsrc. ! decodebin ! audioconvert ! audioresample ! audio/x-raw ! opusenc ! rtpopuspay name=pay1"    // Alternative to "rtspsrc.": "pulsesrc device=\"BaresipSpeakerInput\"
+
+  # === RTSP camera as input for H264 video without transcoding and baresip for audio
+  # rtspsrc protocols=tcp location=rtsp://10.10.10.41:554//h264Preview_01_main name=rtspsrc ! parsebin ! rtph264pay config-interval=1 name=pay0 pt=96 pulsesrc device="BaresipSpeakerInput" do-timestamp=true ! queue ! audioconvert ! audioresample ! audio/x-raw,format=S16LE,channels=1,rate=8000 ! opusenc ! rtpopuspay name=pay1
+
+  # === RTSP camera as input for H265 video without transcoding and baresip for audio
+  # rtspsrc protocols=tcp location=rtsp://10.10.10.41:554//h265Preview_01_main name=rtspsrc ! parsebin ! rtph265pay config-interval=1 name=pay0 pt=96 pulsesrc device="BaresipSpeakerInput" do-timestamp=true ! queue ! audioconvert ! audioresample ! audio/x-raw,format=S16LE,channels=1,rate=8000 ! opusenc ! rtpopuspay name=pay1
 
   === MJPEG camera as input for video and baresip for audio
   # Example launch string for the gstreamer RTSP server to connect to a MJPEG HTTP camera for the video stream. Encoded to H264.
