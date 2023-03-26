@@ -1,0 +1,49 @@
+#!/command/with-contenv bash
+# shellcheck shell=bash
+# Setup baresip before starting it. Handle config files.
+
+# Idea taken from here: https://github.com/TECH7Fox/asterisk-hass-addons/blob/909430c915ce0fcc9d892de5f4899a98ad7c0f36/asterisk/rootfs/etc/cont-init.d/asterisk.sh#L179
+
+set -o errexit -o nounset -o pipefail
+
+echo "Setting up baresip config files";
+
+readonly etc_baresip="/etc/baresip"
+readonly config_dir="/config/baresip"
+readonly default_config_dir="${config_dir}/default"
+readonly custom_config_dir="${config_dir}/custom"
+
+# Ensure the config folders exist
+if ! mkdir -p "${default_config_dir}" "${custom_config_dir}"; then
+    echo "Failed to create baresip config folders at ${config_dir}"
+    exit 1
+fi
+
+# Save default configs
+echo "Saving default configs to ${default_config_dir}..."
+if ! rsync --archive --delete "${etc_baresip}/" "${default_config_dir}/"; then
+    echo "Failed to copy default configs to ${default_config_dir}"
+    exit 2
+fi
+
+# Fix permissions
+if ! chmod 755 "${default_config_dir}"; then
+    echo "Failed to change permissions of baresip default config folder at ${default_config_dir}"
+    exit 3
+fi
+
+if ! chmod 777 "${custom_config_dir}"; then
+    echo "Failed to change permissions of baresip custom config folder at ${custom_config_dir}"
+    exit 4
+fi
+
+# Restore custom configs
+echo "Restoring custom configs from ${custom_config_dir}..."
+for file in "${custom_config_dir}"/*; do
+    rel_file="$(basename "${file}")"
+    ln -svf "${custom_config_dir}/${rel_file}" "${etc_baresip}/${rel_file}"
+done
+
+echo "Done.";
+
+exit 0

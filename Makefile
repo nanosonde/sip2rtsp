@@ -33,10 +33,10 @@ push_docker:
 	docker buildx build --push --platform linux/arm/v7,linux/arm64,linux/amd64 --target=sip2rtsp --tag $(DOCKERHUB_IMAGE_REPO):$(REF_NAME)-$(COMMIT_HASH) .
 
 run: local
-	docker run --rm --network host --volume=${PWD}/config/config.yml:/config/config.yml --name sip2rtsp sip2rtsp:latest
+	docker run --rm --network host --volume=${PWD}/config/config.yml:/config/config.yml --volume=${PWD}/config/baresip:/config/baresip --name sip2rtsp sip2rtsp:latest
 
 run_shell: local
-	docker run --rm --network host --volume=${PWD}/config/config.yml:/config/config.yml --name sip2rtsp-shell -it sip2rtsp:latest /bin/bash
+	docker run --rm --network host --volume=${PWD}/config/config.yml:/config/config.yml --volume=${PWD}/config/baresip:/config/baresip --name sip2rtsp-shell -it sip2rtsp:latest /bin/bash
 
 run_tests: local
 	docker run --rm --workdir=/opt/sip2rtsp --entrypoint= sip2rtsp:latest python3 -u -m unittest

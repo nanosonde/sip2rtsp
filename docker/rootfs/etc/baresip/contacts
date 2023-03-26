@@ -15,6 +15,3 @@
 # Access rules
 #"Catch All" <sip:*@*>;access=block
 #"Good Friend" <sip:good@friend.com>;access=allow
-
-"Doorbell" <sip:11@10.10.10.22>
-"Test-Doorbell" <sip:11@10.10.10.80>

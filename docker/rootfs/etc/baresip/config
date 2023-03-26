@@ -23,8 +23,8 @@ call_hold_other_calls	yes
 
 # Audio
 #audio_path		/usr/local/share/baresip
-audio_player		pulse,BaresipSpeaker
-audio_source		pulse,BaresipMicrophoneInput
+audio_player		pulse,BaresipSpeaker          # Do not change! This is required by sip2rtsp!
+audio_source		pulse,BaresipMicrophoneInput  # Do not change! This is required by sip2rtsp!
 #audio_player		alsa,default
 #audio_source		alsa,default
 audio_alert		    alsa,default
@@ -108,7 +108,7 @@ module			g711.so
 
 # Audio driver Modules
 #module			alsa.so
-module			pulse.so
+module			pulse.so             # Do not change! This is required by sip2rtsp!
 #module			pulse_async.so
 #module			jack.so
 #module			portaudio.so
@@ -175,7 +175,7 @@ module_app		menu.so
 #module_app		serreg.so
 #module_app		syslog.so
 #module_app		mqtt.so
-module_app		ctrl_tcp.so
+module_app		ctrl_tcp.so         # Do not change! This is required by sip2rtsp!
 module_app		ctrl_dbus.so
 #module_app		httpreq.so
 #module_app		multicast.so
@@ -194,6 +194,7 @@ cons_listen		0.0.0.0:5555 # cons - Console UI UDP/TCP sockets
 
 http_listen		0.0.0.0:8000 # httpd - HTTP Server
 
+# Do not change! This is required by sip2rtsp!
 ctrl_tcp_listen		0.0.0.0:4444 # ctrl_tcp - TCP interface JSON
 
 evdev_device		/dev/input/event0

@@ -45,6 +45,7 @@ fi
 
 # Install baresip, pulseaudio deps and gstreamer
 apt-get -qq install --no-install-recommends --no-install-suggests -y \
+    rsync \
     libltdl7 \
     libtdb1 \
     python3-gi \
