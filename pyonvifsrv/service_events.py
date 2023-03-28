@@ -49,20 +49,18 @@ class Message:
                 <wsnt:Message>
                     <tt:Message xmlns:tt="http://www.onvif.org/ver10/schema" UtcTime="{timestamp}" PropertyOperation="{properyOperation}">
                         <tt:Source>
-                            <tt:SimpleItem Name="device" Value="{device}" />
-                            <tt:SimpleItem Name="type" Value="{type}" />
+                            <tt:SimpleItem Name="Source" Value="{sourceValue}" />
                         </tt:Source>
                         <tt:Data>
-                            <tt:SimpleItem Name="data" Value="{data}" />
+                            <tt:SimpleItem Name="State" Value="{stateValue}" />
                         </tt:Data>
                     </tt:Message>
                 </wsnt:Message>
             </wsnt:NotificationMessage>
         '''.format(topicname=self.topicname,
                    timestamp=self.timestamp.isoformat(sep="T", timespec="seconds").replace("+00:00", "Z"),
-                   device=self.payload["device"],
-                   type=self.payload["type"],
-                   data=self.payload["data"],
+                   sourceValue=self.payload["source_value"],
+                   stateValue=self.payload["state_value"],
                    properyOperation=self.properyOperation)
 
 class PullPointSubscription():

@@ -73,6 +73,9 @@ class CameraConfig(Sip2RtspBaseModel):
     location: str = Field(
         default="sip2rtsp-location", title="ONVIF server: Camera location to report"
     )
+    eventTopicDoorbell: str = Field(
+        default="tns1:Device/Trigger/DigitalInput", title="ONVIF server: Camera doorbell event topic"
+    )
     snapshotUri: str = Field(default="http://10.10.10.10:54321/snapshot", title="ONVIF server: Camera snapshot URI to report")
     streamUri: str = Field(default="rtsp://10.10.10.70:8554/test", title="ONVIF server: Camera stream URI to report")
     width: int = Field(default=1920, title="ONVIF server: Camera width to report")

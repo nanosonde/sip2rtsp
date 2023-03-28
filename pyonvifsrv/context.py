@@ -45,9 +45,10 @@ class Context:
         return None
   
     def triggerDoorbellEvent(self):
-        logger.info("Triggering doorbell event")
+        logger.info("Triggering doorbell event on topic {topic}".format(topic = self.config.onvif.camera.eventTopicDoorbell))
         eventsService = self.getService("events")
-        eventsService.triggerEvent('tns1:Device/tnsaxis:VideoSource/tnsaxis:MotionAlarm', {'device': 'device1', 'type': 'motion', 'data': 'true'})
+        eventsService.triggerEvent(self.config.onvif.camera.eventTopicDoorbell, {'source_value': '000', 'state_value': 'true'})
+        eventsService.triggerEvent(self.config.onvif.camera.eventTopicDoorbell, {'source_value': '000', 'state_value': 'false'})
 
     def setFirmwareVersion(self, firmwareVersion):
         self.firmwareVersion = firmwareVersion

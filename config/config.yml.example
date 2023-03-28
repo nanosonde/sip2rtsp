@@ -75,6 +75,10 @@ onvif:
     # Just used in the generated ONVIF responses
     location: sip2rtsp-location
 
+    # ONVIF event topic that will be used when an incoming SIP call is ringing -> "press the doorbell button"
+    # For example in "scrypted" you would enter "Device/Trigger/DigitalInput" (without quotes) as the ONVIF Doorbell event name
+    eventTopicDoorbell: tns1:Device/Trigger/DigitalInput
+
     # Currently sip2rtsp does not support generating a snapshot from a video stream. So provide the snapshot URI of the camera here.
     snapshotUri: http://<YOUR_CAMERA_IP>:54321/snapshot
 
