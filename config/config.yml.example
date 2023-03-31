@@ -35,6 +35,11 @@ rtsp_server:
   # === RTSP camera as input for H265 video without transcoding and baresip for audio
   # rtspsrc protocols=tcp location=rtsp://10.10.10.41:554//h265Preview_01_main name=rtspsrc ! parsebin ! rtph265pay config-interval=1 name=pay0 pt=96 pulsesrc device="BaresipSpeakerInput" do-timestamp=true ! queue ! audioconvert ! audioresample ! audio/x-raw,format=S16LE,channels=1,rate=8000 ! opusenc ! rtpopuspay name=pay1
 
+  # === MJPEG camera as input for video and baresip for audio
+  # Example launch string for the gstreamer RTSP server to connect to a MJPEG HTTP camera for the video stream. MJPEG stream via RTSP without tarsncoding is used.
+  # Audio is taken from baresip and transcoded to PCM uLaw. So we have mjpeg/pcmu codecs in the RTSP streams.
+  # souphttpsrc location=http://10.10.10.10:54321/stream is-live=true do-timestamp=true timeout=5 ! multipartdemux ! jpegparse ! rtpjpegpay name=pay0 pt=26 pulsesrc device="BaresipSpeakerInput" do-timestamp=true ! queue ! audioconvert ! audioresample ! audio/x-raw,format=S16LE,channels=1,rate=8000 ! mulawenc ! rtppcmupay name=pay1
+
   === MJPEG camera as input for video and baresip for audio
   # Example launch string for the gstreamer RTSP server to connect to a MJPEG HTTP camera for the video stream. Encoded to H264.
   # Audio is taken from the baresip speaker named "BaresipSpeakerInput". Encoded to OPUS.
