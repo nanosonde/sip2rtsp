@@ -1,4 +1,7 @@
-[![CI](https://github.com/nanosonde/sip2rtsp/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/nanosonde/sip2rtsp/actions/workflows/ci.yml)
+[![CI](https://github.com/nanosonde/sip2rtsp/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/nanosonde/sip2rtsp/actions/workflows/ci.yml) ![Project unmaintained](https://img.shields.io/badge/project-unmaintained-red.svg)
+
+# I have stopped working on this project! I have bought a new video doorbell with proper working mobile apps. So I do not need this solution anymore. Feel free to fork!
+
 # SIP2RTSP
 A docker container that uses [baresip](https://github.com/baresip/baresip), [pulseaudio](https://www.freedesktop.org/wiki/Software/PulseAudio/) and [gstreamer RTSP server](https://gstreamer.freedesktop.org/documentation/gst-rtsp-server/rtsp-onvif-server.html?gi-language=python) to provide a solution that connects to a SIP peer (audio only) and a video camera to present an ONVIF profile T video doorbell with two-way audio support.
 
